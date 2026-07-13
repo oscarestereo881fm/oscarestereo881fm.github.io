@@ -1,0 +1,1627 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oscar Estéreo 88.1 FM | Tu alternativa musical</title>
+    <link rel="icon" type="image/png" href="images/favicon.png" id="favicon-tag">
+    <script>try{var f=JSON.parse(localStorage.getItem('oscar_estereo_db'));if(f&&f.favicon)document.getElementById('favicon-tag').href=f.favicon}catch(e){}</script>
+
+    <!-- Open Graph / Redes Sociales - Preview al compartir -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Oscar Estéreo 88.1 FM — Tu alternativa musical" />
+    <meta property="og:description" content="Sintoniza la voz vibrante de Quebrada Arriba, Estado Lara, Venezuela. Música, noticias y deportes en vivo las 24 horas." />
+    <meta property="og:image" content="images/preview-redes.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:url" content="https://oscarestereosistemas.github.io/oscarestereo/" />
+    <meta property="og:locale" content="es_VE" />
+    <meta property="og:site_name" content="Oscar Estéreo 88.1 FM" />
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Oscar Estéreo 88.1 FM — Tu alternativa musical" />
+    <meta name="twitter:description" content="Sintoniza la voz vibrante de Quebrada Arriba, Estado Lara, Venezuela. Música, noticias y deportes en vivo." />
+    <meta name="twitter:image" content="images/preview-redes.jpg" />
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-N373JNYHR3"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-N373JNYHR3');
+    </script>
+
+    <!-- Tailwind CSS (local) -->
+    <script src="js/tailwindcss.js"></script>
+    
+    <!-- FontAwesome Icons (local) -->
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+    
+    <!-- Google Fonts: Inter & Outfit (local) -->
+    <link rel="stylesheet" href="css/local-fonts.css">
+    
+    <!-- React and ReactDOM (local) -->
+    <script src="js/react.production.min.js"></script>
+    <script src="js/react-dom.production.min.js"></script>
+    <!-- Babel standalone (local) -->
+    <script src="js/babel.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b0b0c;
+        }
+        html {
+            scroll-padding-top: 70px;
+        }
+        h1, h2, h3, .font-display {
+            font-family: 'Outfit', sans-serif;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #121214;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #27272a;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #E11D48;
+        }
+        /* Vinyl spinning keyframe animation */
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .animate-spin-slow {
+            animation: spin 6s linear infinite;
+        }
+        /* Smooth transition for audio arm */
+        .tonearm-transition {
+            transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        .touch-manipulation {
+            touch-action: manipulation;
+        }
+        /* Background image sections */
+        .bg-section {
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            position: relative;
+        }
+        .bg-section::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, rgba(11,11,12,0.85), rgba(11,11,12,0.92));
+            z-index: 0;
+        }
+        .bg-section > * {
+            position: relative;
+            z-index: 1;
+        }
+        .bg-header-hero {
+            background-image: url('images/bg-header.jpg');
+        }
+        .bg-about-section {
+            background-image: url('images/bg-about.jpg');
+        }
+        .bg-programming-section {
+            background-image: url('images/bg-programming.jpg');
+        }
+        .bg-comments-section {
+            background-image: url('images/bg-comments.jpg');
+        }
+    </style>
+</head>
+<body class="text-zinc-100 overflow-x-hidden">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // === LOADER DE DATOS DESDE EL ADMIN (localStorage) ===
+        const DEFAULT_FRONT_DATA = {
+            hero: { title: 'Música, Noticias', highlight: 'Deportes', description: 'Oscar Estéreo 88.1 FM — Tu alternativa musical. Sintoniza la voz vibrante de la Parroquia El Blanco en el Estado Lara, Venezuela.', bgImage: 'images/bg-header.jpg', badge: 'Transmitiendo desde Quebrada Arriba, Estado Lara, Venezuela' },
+            navigation: { link1Text: 'Inicio', link1Target: '#inicio', link2Text: 'Historia', link2Target: '#biografia', link3Text: 'Programas', link3Target: '#programacion', link4Text: 'Contacto', link4Target: '#comentarios', tvText: 'TV en Vivo', tvUrl: 'https://micanal.ovh/channel/live-stream/oscarestereotv', footer1Text: 'Historia y Raíces', footer1Target: '#biografia', footer2Text: 'Buzón de Mensajes', footer2Target: '#comentarios', footer3Text: 'Oscar Estéreo TV', footer3Url: 'https://micanal.ovh/channel/live-stream/oscarestereotv' },
+            streaming: { audioUrl: 'https://micanal.ovh/radio/oscarestereotv/live.mp3', tvUrl: 'https://micanal.ovh/channel/live-stream/oscarestereotv', name: 'Señal en Vivo HD', frequency: '88.1 FM', slogan: 'tu alternativa musical' },
+            aboutUs: { foundingWeb: '29 de agosto del 2020', foundingFm: '6 de febrero del 2021', firstShow: 'El Show Deportivo - Prof. Juan Pedro', slogan: 'tu alternativa musical', historyFull: 'Oscar Estéreo música nació bajo la premisa de unir, educar y entretener a nuestra valiosa comunidad agropecuaria y vecinal en Quebrada Arriba, Estado Lara.', regionDesc: 'Quebrada Arriba funciona como la capital de la vibrante Parroquia El Blanco, ubicada al oeste de Carora en el Municipio Torres, Estado Lara, Venezuela.' },
+            programs: [
+                { id: 'p1', title: 'Amanecer con Ritmo', timeStart: '05:00 AM', timeEnd: '08:30 AM', hosts: 'Locutores de Cabina', desc: 'Comienza tu mañana con la mejor energía musical folclórica.', icon: 'fa-sun', color: 'rose' },
+                { id: 'p2', title: 'El Show de la Mañana', timeStart: '09:00 AM', timeEnd: '12:00 PM', hosts: 'Profesor Juan Pedro', desc: 'Entretenimiento, entrevistas especiales y música latina moderna.', icon: 'fa-microphone', color: 'amber' },
+                { id: 'p3', title: 'Oscar Deportes', timeStart: '01:00 PM', timeEnd: '03:00 PM', hosts: 'Profesor Juan Pedro & Equipo', desc: 'La mesa deportiva más completa con el acontecer regional, nacional e internacional.', icon: 'fa-volleyball', color: 'blue' }
+            ],
+            social: { whatsappNumber: '584262179553', whatsappUrl: 'https://wa.me/584262179553', instagramUrl: 'https://instagram.com', tiktokUrl: 'https://tiktok.com', facebookUrl: 'https://facebook.com', youtubeUrl: 'https://youtube.com' },
+            footer: { description: 'La emisora comunitaria que conecta a Quebrada Arriba, Lara y toda Venezuela con excelente música, transmisiones deportivas en directo e información confiable de nuestra localidad.' },
+            sectionTitles: { programacionTitle: 'Sintonía de Lunes a Domingo', programacionSubtitle: 'Nuestra propuesta radial está cuidadosamente diseñada para acompañarte en cada hora del día con voces profesionales y entretenidas.', biografiaTitle: 'Nuestra Historia', biografiaSubtitle: 'Más que una emisora, somos la voz identitaria de Quebrada Arriba y la Parroquia El Blanco.', comentariosTitle: 'Envía tus Saludos y Mensajes', comentariosSubtitle: '¿Quieres enviar un saludo a un familiar en Quebrada Arriba o pedir tu canción favorita?', comentariosBadge: 'Cabina Interactiva' },
+            adSlider: { banners: [] },
+            partners: { devName: 'Adolfo J. Gelabert Semeco', devUrl: 'https://adolfogelabert.github.io/', colabName: 'Nelsys Milagros Navas R. (Historias Musicales)', colabUrl: 'https://nelsysnavas.github.io/historiasmusicales/', allyName: 'Voces de Venezuela', allyUrl: 'https://nelsysnavas.github.io/vocesdevenezuela/' },
+            ads: { enabled: true },
+            seo: { gaId: '', gscCode: '', sitemapUrl: '', metaTitle: '', metaDescription: '', metaKeywords: '' }
+        };
+
+        function loadFrontData() {
+            try {
+                const stored = localStorage.getItem('oscar_estereo_db');
+                if (stored) {
+                    const parsed = JSON.parse(stored);
+                    return {
+                        hero: { ...DEFAULT_FRONT_DATA.hero, ...(parsed.hero || {}) },
+                        navigation: { ...DEFAULT_FRONT_DATA.navigation, ...(parsed.navigation || {}) },
+                        streaming: { ...DEFAULT_FRONT_DATA.streaming, ...(parsed.streaming || {}) },
+                        aboutUs: { ...DEFAULT_FRONT_DATA.aboutUs, ...(parsed.aboutUs || {}) },
+                        programs: parsed.programs && parsed.programs.length ? parsed.programs : DEFAULT_FRONT_DATA.programs,
+                        social: { ...DEFAULT_FRONT_DATA.social, ...(parsed.social || {}) },
+                        footer: { ...DEFAULT_FRONT_DATA.footer, ...(parsed.footer || {}) },
+                        sectionTitles: { ...DEFAULT_FRONT_DATA.sectionTitles, ...(parsed.sectionTitles || {}) },
+                        adSlider: parsed.adSlider || DEFAULT_FRONT_DATA.adSlider,
+                        partners: { ...DEFAULT_FRONT_DATA.partners, ...(parsed.partners || {}) },
+                        ads: { ...DEFAULT_FRONT_DATA.ads, ...(parsed.ads || {}) },
+                        seo: { ...DEFAULT_FRONT_DATA.seo, ...(parsed.seo || {}) }
+                    };
+                }
+            } catch(e) { console.warn('Error loading admin data:', e); }
+            return DEFAULT_FRONT_DATA;
+        }
+
+        // Custom Stream Presets - Señal Real de Oscar Estéreo asignada como principal
+        const PRESET_STREAMS = [
+            { name: "Oscar Estéreo 88.1 FM (Señal Real)", url: "https://micanal.ovh/radio/oscarestereotv/live.mp3" },
+            { name: "Señal Digital de Respaldo", url: "https://stream.zeno.fm/g6tcz32vux8uv" }
+        ];
+
+        function App() {
+            const [isPlaying, setIsPlaying] = useState(false);
+            const [streamUrl, setStreamUrl] = useState(PRESET_STREAMS[0].url);
+            const [volume, setVolume] = useState(0.8);
+            const [customUrlInput, setCustomUrlInput] = useState("");
+            const [showSettings, setShowSettings] = useState(false);
+            const [showSalesModal, setShowSalesModal] = useState(false);
+            const [currentTimeStr, setCurrentTimeStr] = useState("");
+            const [broadcastStatus, setBroadcastStatus] = useState("idle");
+            const [sliderHovered, setSliderHovered] = useState(false);
+            
+            // Interaction Board State
+            // Cargar saludos aprobados desde localStorage (db.saludos)
+            const loadApprovedComments = () => {
+                try {
+                    const stored = localStorage.getItem('oscar_estereo_db');
+                    if (!stored) return null;
+                    const db = JSON.parse(stored);
+                    if (!db.saludos || !Array.isArray(db.saludos)) return null;
+                    // Solo los aprobados, ordenados más recientes primero
+                    return db.saludos
+                        .filter(s => s.status === 'aprobado')
+                        .map(s => ({
+                            id: s.id,
+                            author: s.name || s.author,
+                            text: s.message || s.text,
+                            request: s.song || s.request || '',
+                            timestamp: s.timestamp ? new Date(s.timestamp) : new Date(s.date || Date.now())
+                        }));
+                } catch(e) { console.warn('Error cargando saludos:', e); return null; }
+            };
+
+            // Estado inicial: aprobados del localStorage o los default si está vacío
+            const DEFAULT_COMMENTS = [
+                { id: 'd1', author: "Carlos Torres", text: "¡Un gran saludo a toda la gente de Quebrada Arriba! Se escucha excelente desde Carora.", request: "Los Cardenales del Éxito", timestamp: new Date(Date.now() - 1800000) },
+                { id: 'd2', author: "Maria Elena", text: "Felicitaciones por la excelente programación de la 88.1, siempre conectados con la buena música.", request: "Las Avispas", timestamp: new Date(Date.now() - 3600000) },
+                { id: 'd3', author: "Pedro Cordero", text: "El Blanco presente y activo en sintonía.", request: "Música llanera", timestamp: new Date(Date.now() - 5400000) }
+            ];
+            const [comments, setComments] = useState(() => {
+                const loaded = loadApprovedComments();
+                return loaded !== null ? loaded : DEFAULT_COMMENTS;
+            });
+            const [authorName, setAuthorName] = useState("");
+            const [commentText, setCommentText] = useState("");
+            const [songRequest, setSongRequest] = useState("");
+            const [isSubmitting, setIsSubmitting] = useState(false);
+            const [notification, setNotification] = useState(null);
+            const [showBackToTop, setShowBackToTop] = useState(false);
+            const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+            // === DATOS CARGADOS DESDE EL ADMIN ===
+            const [frontData, setFrontData] = useState(() => loadFrontData());
+            const [dataVersion, setDataVersion] = useState(0);
+
+            // Recargar datos cuando el admin modifique localStorage
+            useEffect(() => {
+                const refreshComments = () => {
+                    const loaded = loadApprovedComments();
+                    if (loaded !== null) {
+                        setComments(prev => {
+                            if (JSON.stringify(prev) !== JSON.stringify(loaded)) {
+                                return loaded;
+                            }
+                            return prev;
+                        });
+                    }
+                };
+
+                const onStorage = (e) => {
+                    if (e.key === 'oscar_estereo_db') {
+                        setFrontData(loadFrontData());
+                        setDataVersion(v => v + 1);
+                        refreshComments();
+                    }
+                };
+                window.addEventListener('storage', onStorage);
+                // También refrescar periódicamente por si la pestaña admin escribió sin disparar storage
+                const interval = setInterval(() => {
+                    const fresh = loadFrontData();
+                    if (JSON.stringify(fresh) !== JSON.stringify(frontData)) {
+                        setFrontData(fresh);
+                        setDataVersion(v => v + 1);
+                    }
+                    refreshComments();
+                }, 5000);
+                return () => {
+                    window.removeEventListener('storage', onStorage);
+                    clearInterval(interval);
+                };
+            }, [frontData]);
+
+            const hero = frontData.hero;
+            const nav = frontData.navigation;
+            const stream = frontData.streaming;
+            const about = frontData.aboutUs;
+            const social = frontData.social;
+            const footerData = frontData.footer;
+            const sections = frontData.sectionTitles;
+            const programs = frontData.programs;
+            const partners = frontData.partners;
+            const adBanners = (frontData.adSlider && frontData.adSlider.banners && frontData.adSlider.banners.length) ? frontData.adSlider.banners : [];
+            const seo = frontData.seo || {};
+
+            // Inyectar Google Analytics dinámicamente si está configurado
+            useEffect(() => {
+                if (seo.gaId && /^G-[A-Z0-9]{4,15}$/i.test(seo.gaId)) {
+                    if (!document.getElementById('ga-script-' + seo.gaId)) {
+                        const s1 = document.createElement('script');
+                        s1.id = 'ga-script-' + seo.gaId;
+                        s1.async = true;
+                        s1.src = 'https://www.googletagmanager.com/gtag/js?id=' + seo.gaId;
+                        document.head.appendChild(s1);
+                        const s2 = document.createElement('script');
+                        s2.id = 'ga-init-' + seo.gaId;
+                        s2.innerHTML = 'window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag("js", new Date()); gtag("config", "' + seo.gaId + '");';
+                        document.head.appendChild(s2);
+                    }
+                }
+                if (seo.gscCode && /^[a-zA-Z0-9_-]{20,60}$/.test(seo.gscCode)) {
+                    if (!document.getElementById('gsc-meta')) {
+                        const m = document.createElement('meta');
+                        m.id = 'gsc-meta';
+                        m.name = 'google-site-verification';
+                        m.content = seo.gscCode;
+                        document.head.appendChild(m);
+                    }
+                }
+                if (seo.metaTitle) document.title = seo.metaTitle;
+            }, [seo.gaId, seo.gscCode, seo.metaTitle]);
+
+            // === SLIDER INFINITO ===
+            // Estructura del track extendido: [cloneUltimo, ...reales, clonePrimero]
+            // currentAdExt apunta a la posición dentro del track extendido (1..n)
+            const [currentAdExt, setCurrentAdExt] = useState(1);
+            const [transitionEnabled, setTransitionEnabled] = useState(true);
+
+            // Al cambiar el array de banners, resetear al primer real
+            useEffect(() => {
+                setCurrentAdExt(1);
+            }, [adBanners.length]);
+
+            const n = adBanners.length;
+            const extended = n > 0 ? [adBanners[n - 1], ...adBanners, adBanners[0]] : [];
+
+            const realIndex = (i) => {
+                if (i === 0) return n - 1;
+                if (i === n + 1) return 0;
+                return i - 1;
+            };
+
+            const goToReal = (idx) => {
+                setTransitionEnabled(false);
+                setCurrentAdExt(idx + 1);
+                requestAnimationFrame(() => requestAnimationFrame(() => setTransitionEnabled(true)));
+            };
+
+            const prevAd = () => {
+                if (n <= 1) return;
+                if (currentAdExt <= 1) {
+                    // Ir al clone del final, luego saltar al último real
+                    setCurrentAdExt(0);
+                    setTimeout(() => goToReal(n - 1), 50);
+                } else {
+                    setCurrentAdExt(c => c - 1);
+                }
+            };
+
+            const nextAd = () => {
+                if (n <= 1) return;
+                if (currentAdExt >= n) {
+                    // Ir al clone del inicio, luego saltar al primer real
+                    setCurrentAdExt(n + 1);
+                    setTimeout(() => goToReal(0), 50);
+                } else {
+                    setCurrentAdExt(c => c + 1);
+                }
+            };
+
+            const goToAd = (idx) => {
+                setCurrentAdExt(idx + 1);
+            };
+
+            // Después de mount, si el adBanners.length cambia, ajustar
+            useEffect(() => {
+                if (currentAdExt > n + 1 || currentAdExt < 0) {
+                    setCurrentAdExt(1);
+                }
+            }, [n]);
+
+            const audioRef = useRef(null);
+            const visualizerInterval = useRef(null);
+            const staleTimerRef = useRef(null);
+            const [equalizerHeights, setEqualizerHeights] = useState([30, 15, 45, 20, 35, 50, 25, 40, 10, 30, 45, 15]);
+
+            // Scroll personalizado lento y suave
+            const smoothScrollTo = (targetY, duration = 1200) => {
+                const startY = window.scrollY;
+                const distance = targetY - startY;
+                const startTime = performance.now();
+
+                const easeInOutCubic = (t) => {
+                    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+                };
+
+                const step = (currentTime) => {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    const eased = easeInOutCubic(progress);
+                    window.scrollTo(0, startY + distance * eased);
+                    if (progress < 1) {
+                        requestAnimationFrame(step);
+                    }
+                };
+                requestAnimationFrame(step);
+            };
+
+            const scrollToSection = (e, targetId) => {
+                e.preventDefault();
+                const el = document.getElementById(targetId);
+                if (el) {
+                    const y = el.getBoundingClientRect().top + window.scrollY - 80;
+                    smoothScrollTo(y, 1200);
+                }
+            };
+
+            const scrollToTop = () => {
+                smoothScrollTo(0, 1500);
+            };
+
+            useEffect(() => {
+                const handleScroll = () => {
+                    setShowBackToTop(window.scrollY > 400);
+                };
+                window.addEventListener('scroll', handleScroll);
+
+                const updateClock = () => {
+                    const now = new Date();
+                    setCurrentTimeStr(now.toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+                };
+                updateClock();
+                const clockInterval = setInterval(updateClock, 1000);
+
+                return () => {
+                    window.removeEventListener('scroll', handleScroll);
+                    clearTimeout(staleTimerRef.current);
+                    if (audioRef.current) {
+                        audioRef.current.pause();
+                        audioRef.current = null;
+                    }
+                    clearInterval(clockInterval);
+                };
+            }, []);
+
+            // Auto-play advertising slider infinito (pausa en hover)
+            useEffect(() => {
+                if (adBanners.length <= 1) return;
+                if (sliderHovered) return;
+                const interval = setInterval(() => {
+                    if (currentAdExt >= n) {
+                        setCurrentAdExt(n + 1);
+                        setTimeout(() => goToReal(0), 500);
+                    } else {
+                        setCurrentAdExt(c => c + 1);
+                    }
+                }, 5000);
+                return () => clearInterval(interval);
+            }, [adBanners.length, currentAdExt, n, sliderHovered]);
+
+            const getOrCreateAudio = (url) => {
+                if (audioRef.current) {
+                    audioRef.current.pause();
+                    audioRef.current.onerror = null;
+                    audioRef.current.onplaying = null;
+                    audioRef.current.onstalled = null;
+                    audioRef.current.onwaiting = null;
+                    audioRef.current.onemptied = null;
+                    audioRef.current.removeAttribute('src');
+                    audioRef.current.load();
+                }
+                clearTimeout(staleTimerRef.current);
+
+                const audio = new Audio();
+                audio.preload = 'auto';
+                audio.volume = volume;
+
+                audio.onerror = () => {
+                    setBroadcastStatus("off_air");
+                    showNotification("No se pudo conectar con la señal.");
+                    setIsPlaying(false);
+                };
+
+                audio.onplaying = () => {
+                    setBroadcastStatus("on_air");
+                    clearTimeout(staleTimerRef.current);
+                };
+
+                const startStaleTimer = () => {
+                    clearTimeout(staleTimerRef.current);
+                    staleTimerRef.current = setTimeout(() => {
+                        if (audioRef.current && !audioRef.current.paused) {
+                            setBroadcastStatus("off_air");
+                            showNotification("Disculpe, en estos momentos no estamos al aire.");
+                        }
+                    }, 12000);
+                };
+
+                audio.onstalled = () => {
+                    setBroadcastStatus("connecting");
+                    startStaleTimer();
+                };
+
+                audio.onwaiting = () => {
+                    setBroadcastStatus("connecting");
+                    startStaleTimer();
+                };
+
+                audio.onemptied = () => {
+                    setBroadcastStatus("off_air");
+                };
+
+                audio.src = url;
+                audioRef.current = audio;
+                return audio;
+            };
+
+            const changeStreamUrl = (newUrl) => {
+                const wasPlaying = isPlaying;
+                setStreamUrl(newUrl);
+                const audio = getOrCreateAudio(newUrl);
+                
+                if (wasPlaying) {
+                    audio.play()
+                        .then(() => setIsPlaying(true))
+                        .catch(err => {
+                            console.error("Audio error: ", err);
+                            setIsPlaying(false);
+                        });
+                }
+                showNotification("Sintonizando nueva señal digital...");
+            };
+
+            const handlePlayPause = () => {
+                if (isPlaying) {
+                    if (audioRef.current) {
+                        audioRef.current.pause();
+                    }
+                    clearTimeout(staleTimerRef.current);
+                    setIsPlaying(false);
+                    setBroadcastStatus("idle");
+                    showNotification("Transmisión en pausa");
+                } else {
+                    const audio = getOrCreateAudio(streamUrl);
+                    setBroadcastStatus("connecting");
+                    showNotification("Sintonizando señal en vivo...");
+                    audio.play()
+                        .then(() => {
+                            setIsPlaying(true);
+                            setBroadcastStatus("on_air");
+                            showNotification("¡Al Aire! Escuchando Oscar Estéreo 88.1 FM");
+                        })
+                        .catch(err => {
+                            console.error("Error playing audio: ", err);
+                            setBroadcastStatus("off_air");
+                            showNotification("No se pudo conectar. Verifica tu conexión de datos.");
+                            setIsPlaying(false);
+                        });
+                }
+            };
+
+            const handleVolumeChange = (e) => {
+                const newVolume = parseFloat(e.target.value);
+                setVolume(newVolume);
+                if (audioRef.current) {
+                    audioRef.current.volume = newVolume;
+                }
+            };
+
+            useEffect(() => {
+                if (isPlaying) {
+                    visualizerInterval.current = setInterval(() => {
+                        setEqualizerHeights(prev => prev.map(() => Math.floor(Math.random() * 55) + 10));
+                    }, 100);
+                } else {
+                    clearInterval(visualizerInterval.current);
+                    setEqualizerHeights([10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10]);
+                }
+                return () => clearInterval(visualizerInterval.current);
+            }, [isPlaying]);
+
+            const handleSubmitComment = (e) => {
+                e.preventDefault();
+                if (!authorName.trim() || !commentText.trim()) {
+                    showNotification("Por favor completa tu nombre y mensaje.");
+                    return;
+                }
+
+                setIsSubmitting(true);
+                const newComment = {
+                    id: 's_' + Date.now(),
+                    name: authorName,
+                    author: authorName,
+                    message: commentText,
+                    text: commentText,
+                    location: 'Quebrada Arriba',
+                    song: songRequest,
+                    request: songRequest,
+                    status: 'pendiente',
+                    featured: false,
+                    date: new Date().toISOString().replace('T', ' ').substring(0, 16),
+                    timestamp: new Date()
+                };
+
+                setTimeout(() => {
+                    // Guardar en localStorage (db.saludos) para que aparezca en el admin
+                    try {
+                        const stored = localStorage.getItem('oscar_estereo_db');
+                        const db = stored ? JSON.parse(stored) : { saludos: [] };
+                        if (!db.saludos) db.saludos = [];
+                        // Evitar duplicados por id
+                        if (!db.saludos.find(s => s.id === newComment.id)) {
+                            db.saludos.unshift(newComment);
+                            localStorage.setItem('oscar_estereo_db', JSON.stringify(db));
+                        }
+                    } catch(err) { console.warn('No se pudo guardar saludo:', err); }
+
+                    setComments(prev => [newComment, ...prev]);
+                    setAuthorName("");
+                    setCommentText("");
+                    setSongRequest("");
+
+                    // Notificar al admin (recargar la siguiente vez que lo abra)
+                    showNotification("¡Tu saludo fue enviado! Está pendiente de moderación.");
+
+                    // Simulación: enviar correo al admin con EmailJS (cuando esté configurado)
+                    try {
+                        const stored = localStorage.getItem('oscar_estereo_db');
+                        const db = stored ? JSON.parse(stored) : null;
+                        const emailjs = db && db.emailjs;
+                        if (emailjs && emailjs.publicKey && emailjs.serviceId && emailjs.templateId) {
+                            console.log('EmailJS configurado — enviar correo (simulado):', { to: 'admin@oscarestereo.com', subject: 'Nuevo saludo: ' + newComment.name, message: newComment.message });
+                            // Aquí iría la llamada real: emailjs.send(emailjs.serviceId, emailjs.templateId, {...}, emailjs.publicKey)
+                        }
+                    } catch(err) { console.warn(err); }
+
+                    setIsSubmitting(false);
+                }, 600);
+            };
+
+            // === FORMULARIO DE VENTAS / SOLICITUD COMERCIAL ===
+            const handleSubmitSales = (e) => {
+                e.preventDefault();
+                const name = document.getElementById('sales-name').value.trim();
+                const company = document.getElementById('sales-company').value.trim();
+                const email = document.getElementById('sales-email').value.trim();
+                const phone = document.getElementById('sales-phone').value.trim();
+                const type = document.getElementById('sales-type').value;
+                const budget = document.getElementById('sales-budget').value;
+                const message = document.getElementById('sales-message').value.trim();
+                if (!name || !company || !email || !message) {
+                    showNotification("Por favor completa los campos obligatorios (*).");
+                    return;
+                }
+                const btn = document.getElementById('btn-sales-submit');
+                const original = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Enviando...';
+                btn.disabled = true;
+
+                setTimeout(() => {
+                    const newLead = {
+                        id: 'lead_' + Date.now(),
+                        name, company, email, phone, type, budget, message,
+                        status: 'pendiente',
+                        date: new Date().toISOString().replace('T', ' ').substring(0, 16)
+                    };
+
+                    // Guardar en localStorage (db.salesLeads)
+                    try {
+                        const stored = localStorage.getItem('oscar_estereo_db');
+                        const db = stored ? JSON.parse(stored) : {};
+                        if (!db.salesLeads) db.salesLeads = [];
+                        if (!db.salesLeads.find(l => l.id === newLead.id)) {
+                            db.salesLeads.unshift(newLead);
+                            localStorage.setItem('oscar_estereo_db', JSON.stringify(db));
+                        }
+                    } catch(err) { console.warn('Error guardando lead:', err); }
+
+                    // Notificar al admin via EmailJS
+                    try {
+                        const stored = localStorage.getItem('oscar_estereo_db');
+                        const db = stored ? JSON.parse(stored) : null;
+                        const emailjs = db && db.emailjs;
+                        if (emailjs && emailjs.publicKey && emailjs.serviceId && emailjs.templateId) {
+                            console.log('EmailJS lead comercial:', { company, type, budget });
+                        }
+                    } catch(err) {}
+
+                    showNotification("¡Solicitud enviada! Te contactaremos en menos de 24 horas.");
+                    setShowSalesModal(false);
+                    // Limpiar formulario
+                    ['sales-name','sales-company','sales-email','sales-phone','sales-message'].forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) el.value = '';
+                    });
+                    btn.innerHTML = original;
+                    btn.disabled = false;
+                }, 900);
+            };
+
+            const showNotification = (msg) => {
+                setNotification(msg);
+                setTimeout(() => setNotification(null), 3500);
+            };
+
+            const handleCustomUrlSubmit = (e) => {
+                e.preventDefault();
+                if (customUrlInput.trim()) {
+                    changeStreamUrl(customUrlInput.trim());
+                    setShowSettings(false);
+                } else {
+                    showNotification("Ingresa una URL válida");
+                }
+            };
+
+            return (
+                <div className="min-h-screen bg-[#0b0b0c] text-zinc-100 flex flex-col selection:bg-rose-600 selection:text-white">
+                    
+                    {/* Floating Alert Messages */}
+                    {notification && (
+                        <div className="fixed bottom-6 right-6 z-50 bg-rose-600 text-white font-medium px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 border border-rose-500 animate-bounce">
+                            <i className="fas fa-satellite-dish animate-pulse"></i>
+                            <span>{notification}</span>
+                        </div>
+                    )}
+
+                    {/* Back to Top Button */}
+                    {showBackToTop && (
+                        <button
+                            onClick={scrollToTop}
+                            className="fixed bottom-6 right-6 z-50 w-12 h-12 bg-rose-600 hover:bg-rose-700 text-white rounded-full shadow-lg shadow-rose-600/30 flex items-center justify-center transition-all transform hover:scale-110"
+                            aria-label="Volver arriba"
+                        >
+                            <i className="fas fa-chevron-up text-lg"></i>
+                        </button>
+                    )}
+
+                    {/* Navigation Bar */}
+                    <nav className="sticky top-0 z-40 backdrop-blur-md bg-zinc-950/80 border-b border-zinc-900 px-4 py-3 md:px-8">
+                        <div className="max-w-7xl mx-auto flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-rose-600 relative flex-shrink-0">
+                                    <img 
+                                        src="images/logo_oscar-stereo.png" 
+                                        alt="Oscar Estéreo 88.1 FM Logo" 
+                                        className={`w-full h-full object-cover ${isPlaying ? 'animate-spin-slow' : ''}`}
+                                        onError={(e) => { e.target.src='https://placehold.co/40x40/222222/e11d48?text=OE' }}
+                                    />
+                                </div>
+                                <div className="hidden sm:block">
+                                    <span className="font-display font-black text-lg tracking-wider text-white">OSCAR <span className="text-rose-600">ESTÉREO</span></span>
+                                    <div className="text-[10px] text-zinc-400 font-semibold tracking-widest -mt-1 uppercase">{stream.frequency} • {stream.slogan}</div>
+                                </div>
+                            </div>
+
+                            {/* Desktop Navigation Links */}
+                            <div className="hidden lg:flex items-center gap-6">
+                                <a href={nav.link1Target} onClick={(e) => scrollToSection(e, (nav.link1Target || '#').replace('#',''))} className="text-xs font-bold uppercase tracking-wider text-zinc-300 hover:text-rose-500 transition-colors duration-300 cursor-pointer">{nav.link1Text}</a>
+                                <a href={nav.link2Target} onClick={(e) => scrollToSection(e, (nav.link2Target || '#').replace('#',''))} className="text-xs font-bold uppercase tracking-wider text-zinc-300 hover:text-rose-500 transition-colors duration-300 cursor-pointer">{nav.link2Text}</a>
+                                <a href={nav.link3Target} onClick={(e) => scrollToSection(e, (nav.link3Target || '#').replace('#',''))} className="text-xs font-bold uppercase tracking-wider text-zinc-300 hover:text-rose-500 transition-colors duration-300 cursor-pointer">{nav.link3Text}</a>
+                                <a href={nav.link4Target} onClick={(e) => scrollToSection(e, (nav.link4Target || '#').replace('#',''))} className="text-xs font-bold uppercase tracking-wider text-zinc-300 hover:text-rose-500 transition-colors duration-300 cursor-pointer">{nav.link4Text}</a>
+                                <a href={nav.tvUrl} target="_blank" rel="noopener noreferrer" className="text-xs font-bold uppercase tracking-wider text-emerald-500 hover:text-emerald-400 transition-colors duration-300 flex items-center gap-1.5">
+                                    <i className="fas fa-tv text-[10px]"></i> {nav.tvText}
+                                </a>
+                            </div>
+
+                            {/* Clock, Signal Status & Hamburger */}
+                            <div className="flex items-center gap-4">
+                                <div className="hidden sm:flex flex-col items-end text-right">
+                                    <span className="text-[10px] text-zinc-400 font-semibold uppercase tracking-wider">Hora Local (Venezuela)</span>
+                                    <span className="text-sm font-bold font-display text-zinc-200">{currentTimeStr || "--:--:--"}</span>
+                                </div>
+                                <div className="hidden sm:flex items-center gap-2 bg-zinc-900 border border-zinc-800 px-3.5 py-1.5 rounded-full">
+                                    <span className={`w-2.5 h-2.5 rounded-full ${
+                                        broadcastStatus === 'on_air' ? 'bg-emerald-500 animate-ping' :
+                                        broadcastStatus === 'connecting' ? 'bg-yellow-500 animate-pulse' :
+                                        broadcastStatus === 'off_air' ? 'bg-rose-600' :
+                                        'bg-zinc-600'
+                                    }`}></span>
+                                    <span className="text-xs font-bold tracking-wider uppercase text-zinc-300">
+                                        {broadcastStatus === 'on_air' ? "En Vivo" :
+                                         broadcastStatus === 'connecting' ? "Conectando..." :
+                                         broadcastStatus === 'off_air' ? "Sin Señal" :
+                                         "Sintonizar"}
+                                    </span>
+                                </div>
+                                {/* Hamburger Menu Button */}
+                                <button 
+                                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                                    className="lg:hidden w-9 h-9 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors"
+                                >
+                                    <i className={`fas ${mobileMenuOpen ? 'fa-times' : 'fa-bars'} text-sm`}></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Mobile Menu Dropdown */}
+                        {mobileMenuOpen && (
+                            <div className="lg:hidden mt-3 pt-3 border-t border-zinc-800 flex flex-col gap-2">
+                                <a href="#" onClick={(e) => { e.preventDefault(); setMobileMenuOpen(false); smoothScrollTo(0, 1200); }} className="text-xs font-bold uppercase tracking-wider text-zinc-300 hover:text-rose-500 py-2 px-2 rounded-lg hover:bg-zinc-900 transition-all duration-300">Inicio</a>
+                                <a href="#biografia" onClick={(e) => { scrollToSection(e, 'biografia'); setMobileMenuOpen(false); }} className="text-xs font-bold uppercase tracking-wider text-zinc-300 hover:text-rose-500 py-2 px-2 rounded-lg hover:bg-zinc-900 transition-all duration-300">Historia</a>
+                                <a href="#comentarios" onClick={(e) => { scrollToSection(e, 'comentarios'); setMobileMenuOpen(false); }} className="text-xs font-bold uppercase tracking-wider text-zinc-300 hover:text-rose-500 py-2 px-2 rounded-lg hover:bg-zinc-900 transition-all duration-300">Programas</a>
+                                <a href="#comentarios" onClick={(e) => { scrollToSection(e, 'comentarios'); setMobileMenuOpen(false); }} className="text-xs font-bold uppercase tracking-wider text-zinc-300 hover:text-rose-500 py-2 px-2 rounded-lg hover:bg-zinc-900 transition-all duration-300">Contacto</a>
+                                <a href="https://micanal.ovh/channel/live-stream/oscarestereotv" target="_blank" rel="noopener noreferrer" className="text-xs font-bold uppercase tracking-wider text-emerald-500 hover:text-emerald-400 py-2 px-2 rounded-lg hover:bg-zinc-900 transition-all duration-300 flex items-center gap-1.5">
+                                    <i className="fas fa-tv text-[10px]"></i> TV en Vivo
+                                </a>
+                                <div className="flex items-center gap-2 mt-2 pt-2 border-t border-zinc-800 px-2">
+                                    <span className={`w-2.5 h-2.5 rounded-full ${
+                                        broadcastStatus === 'on_air' ? 'bg-emerald-500 animate-ping' :
+                                        broadcastStatus === 'connecting' ? 'bg-yellow-500 animate-pulse' :
+                                        broadcastStatus === 'off_air' ? 'bg-rose-600' :
+                                        'bg-zinc-600'
+                                    }`}></span>
+                                    <span className="text-xs font-bold tracking-wider uppercase text-zinc-300">
+                                        {broadcastStatus === 'on_air' ? "En Vivo" :
+                                         broadcastStatus === 'connecting' ? "Conectando..." :
+                                         broadcastStatus === 'off_air' ? "Sin Señal" :
+                                         "Sintonizar"}
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+                    </nav>
+
+                    {/* Header */}
+                    <header className="relative w-full overflow-hidden bg-zinc-950 border-b border-zinc-900 bg-section" style={{ backgroundImage: `url('${hero.bgImage}')`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+                        <div className="absolute inset-0 bg-gradient-to-r from-[#0b0b0c] via-zinc-950/90 to-transparent z-10"></div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#0b0b0c] to-transparent z-10"></div>
+                        
+                        <div className="max-w-7xl mx-auto px-4 md:px-8 py-10 md:py-16 relative z-20 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                            {/* Left Text Grid Column */}
+                            <div className="lg:col-span-7 flex flex-col justify-center space-y-6">
+                                <div className="inline-flex items-center gap-2 bg-rose-600/10 text-rose-500 border border-rose-500/20 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest w-fit">
+                                    <i className="fas fa-broadcast-tower"></i> {hero.badge}
+                                </div>
+                                <h1 className="text-4xl md:text-6xl font-black tracking-tight text-white leading-none" dangerouslySetInnerHTML={{ __html: hero.title + (hero.highlight ? ' <span class="text-rose-600">' + hero.highlight + '</span>' : '') }} />
+                                <p className="text-zinc-400 text-base md:text-lg max-w-xl font-normal leading-relaxed">
+                                    {hero.description}
+                                </p>
+                                <div className="flex flex-wrap gap-3 pt-2">
+                                    <a href="#biografia" onClick={(e) => scrollToSection(e, 'biografia')} className="bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-800 transition px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 cursor-pointer">
+                                        <i className="fas fa-info-circle text-rose-500"></i> Conocer Historia
+                                    </a>
+                                    <a href="#comentarios" onClick={(e) => scrollToSection(e, 'comentarios')} className="bg-rose-600 hover:bg-rose-700 text-white shadow-lg shadow-rose-600/20 transition px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 cursor-pointer">
+                                        <i className="fas fa-paper-plane"></i> Enviar Saludo
+                                    </a>
+                                    <a href={nav.tvUrl} target="_blank" rel="noopener noreferrer" className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-600/20 transition px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2">
+                                        <i className="fas fa-tv"></i> {nav.tvText}
+                                    </a>
+                                </div>
+                            </div>
+
+                            {/* Right Player Column */}
+                            <div className="lg:col-span-5 flex justify-center">
+                                <div className="w-full max-w-sm bg-zinc-900/60 backdrop-blur-md border border-zinc-800/80 p-6 rounded-3xl shadow-2xl relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 w-24 h-24 bg-rose-600/5 rounded-full blur-2xl"></div>
+                                    
+                                    {/* Turntable Header */}
+                                    <div className="flex items-center justify-between mb-4">
+                                        <div className="flex items-center gap-2">
+                                            <i className="fas fa-compact-disc text-rose-500 animate-spin" style={{ animationDuration: '4s' }}></i>
+                                            <span className="text-xs font-bold tracking-widest text-zinc-400 uppercase">Sintonizador Digital</span>
+                                        </div>
+                                        <button 
+                                            onClick={() => setShowSettings(!showSettings)} 
+                                            className="text-zinc-400 hover:text-white transition w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center border border-zinc-700"
+                                            title="Configurar Stream"
+                                        >
+                                            <i className={`fas fa-cog ${showSettings ? 'rotate-90' : ''} transition-transform`}></i>
+                                        </button>
+                                    </div>
+
+                                    {/* Custom URL Overlay Panel */}
+                                    {showSettings && (
+                                        <div className="absolute inset-0 bg-zinc-950/95 z-30 p-6 flex flex-col justify-between rounded-3xl">
+                                            <div>
+                                                <h3 className="text-base font-bold text-white mb-2 flex items-center gap-2">
+                                                    <i className="fas fa-network-wired text-rose-500"></i> Servidor de Streaming
+                                                </h3>
+                                                <p className="text-xs text-zinc-400 mb-4">
+                                                    Si tienes una frecuencia digital de Zeno, Azuracast u otra URL de transmisión de audio activa, puedes configurarla aquí.
+                                                </p>
+                                                
+                                                {/* Preset Streams Selection */}
+                                                <div className="space-y-2 mb-4">
+                                                    <label className="text-[10px] uppercase font-bold tracking-wider text-zinc-500 block">Canales Pre-configurados</label>
+                                                    {PRESET_STREAMS.map((s, idx) => (
+                                                        <button
+                                                            key={idx}
+                                                            onClick={() => {
+                                                                setCustomUrlInput(s.url);
+                                                                changeStreamUrl(s.url);
+                                                                setShowSettings(false);
+                                                            }}
+                                                            className={`w-full text-left text-xs p-2 rounded-lg border transition ${streamUrl === s.url ? 'bg-rose-950/30 border-rose-500/50 text-rose-300' : 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:bg-zinc-800'}`}
+                                                        >
+                                                            <div className="font-bold">{s.name}</div>
+                                                            <div className="text-[9px] text-zinc-500 truncate mt-0.5">{s.url}</div>
+                                                        </button>
+                                                    ))}
+                                                </div>
+
+                                                <form onSubmit={handleCustomUrlSubmit}>
+                                                    <label className="text-[10px] uppercase font-bold tracking-wider text-zinc-500 block mb-1">Tu URL de Stream Personalizada</label>
+                                                    <input 
+                                                        type="text" 
+                                                        value={customUrlInput} 
+                                                        onChange={(e) => setCustomUrlInput(e.target.value)}
+                                                        placeholder="https://stream.zeno.fm/..." 
+                                                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-100 focus:outline-none focus:border-rose-500"
+                                                    />
+                                                    <button type="submit" className="w-full mt-2 bg-rose-600 hover:bg-rose-700 text-white py-1.5 rounded-lg text-xs font-bold transition">
+                                                        Aplicar Servidor
+                                                    </button>
+                                                </form>
+                                            </div>
+
+                                            <button 
+                                                onClick={() => setShowSettings(false)}
+                                                className="w-full bg-zinc-900 text-zinc-400 py-2 rounded-lg text-xs font-bold border border-zinc-800 hover:text-white transition"
+                                            >
+                                                Cerrar Configuraciones
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {/* Turntable Core Box */}
+                                    <div className="bg-zinc-950 p-6 rounded-2xl border border-zinc-800/60 flex flex-col items-center justify-center relative min-h-[220px]">
+                                        
+                                        {/* Vinyl Tonearm Overlay SVG */}
+                                        <div className="absolute top-2 right-4 z-20 pointer-events-none">
+                                            <svg 
+                                                width="90" 
+                                                height="110" 
+                                                viewBox="0 0 90 110" 
+                                                className="tonearm-transition origin-top"
+                                                style={{
+                                                    transform: isPlaying ? 'rotate(26deg)' : 'rotate(0deg)'
+                                                }}
+                                            >
+                                                {/* Base mount */}
+                                                <circle cx="70" cy="20" r="12" fill="#27272a" stroke="#3f3f46" strokeWidth="2" />
+                                                <circle cx="70" cy="20" r="4" fill="#000" />
+                                                {/* Metal arm rod */}
+                                                <path d="M 70 20 L 50 80 L 35 95" fill="none" stroke="#a1a1aa" strokeWidth="3" strokeLinecap="round" />
+                                                {/* Cartridge headshell */}
+                                                <rect x="25" y="90" width="16" height="10" rx="2" transform="rotate(-15, 33, 95)" fill="#e11d48" />
+                                                {/* Stylus highlight tip */}
+                                                <circle cx="27" cy="98" r="2" fill="#fff" />
+                                            </svg>
+                                        </div>
+
+                                        {/* SPINNING VINYL RECORD (Utiliza WhatsApp Image 2026-06-15 at 10.26.59 AM.jpeg) */}
+                                        <div className="relative w-44 h-44 rounded-full bg-[#111] shadow-[0_0_20px_rgba(0,0,0,0.8)] border border-zinc-800 flex items-center justify-center overflow-hidden">
+                                            
+                                            {/* Vinyl Grooves reflection effect */}
+                                            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-black/40 to-black/80 z-10 pointer-events-none"></div>
+                                            
+                                            {/* Spinning logo as vinyl label */}
+                                            <div className={`w-40 h-40 rounded-full overflow-hidden transition-transform duration-[3000ms] ${isPlaying ? 'animate-spin-slow' : ''}`}>
+                                                <img 
+                                                    src="images/logo_oscar-stereo.png" 
+                                                    alt="Estación Vinilo 88.1"
+                                                    className="w-full h-full object-cover scale-105"
+                                                    onError={(e) => { e.target.src='https://placehold.co/160x160/111111/e11d48?text=Oscar+Estéreo+88.1' }}
+                                                />
+                                            </div>
+
+                                            {/* Metal Center spindle hole */}
+                                            <div className="absolute inset-0 m-auto w-3 h-3 rounded-full bg-[#eee] border border-zinc-600 shadow-inner z-20"></div>
+                                        </div>
+                                    </div>
+
+                                    {/* Equalizer animation */}
+                                    <div className="flex items-end justify-center gap-[3px] h-10 my-4 px-2">
+                                        {equalizerHeights.map((h, i) => (
+                                            <div 
+                                                key={i} 
+                                                className="w-full rounded-t-sm transition-all duration-100"
+                                                style={{
+                                                    height: `${h}%`,
+                                                    backgroundColor: i % 2 === 0 ? '#E11D48' : '#f43f5e'
+                                                }}
+                                            />
+                                        ))}
+                                    </div>
+
+                                    {/* Track / Show Info */}
+                                    <div className="text-center mb-4">
+                                        <div className={`text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-1.5 ${
+                                            broadcastStatus === 'on_air' ? 'text-emerald-500' :
+                                            broadcastStatus === 'connecting' ? 'text-yellow-500' :
+                                            broadcastStatus === 'off_air' ? 'text-rose-500' :
+                                            'text-rose-500'
+                                        }`}>
+                                            <span className={`w-1.5 h-1.5 rounded-full ${
+                                                broadcastStatus === 'on_air' ? 'bg-emerald-500 animate-pulse' :
+                                                broadcastStatus === 'connecting' ? 'bg-yellow-500 animate-pulse' :
+                                                'bg-rose-600'
+                                            }`}></span>
+                                            {broadcastStatus === 'on_air' ? "Transmitiendo Ahora" :
+                                             broadcastStatus === 'connecting' ? "Conectando con la señal..." :
+                                             broadcastStatus === 'off_air' ? "Disculpe, no estamos al aire" :
+                                             "Transmitiendo Ahora"}
+                                        </div>
+                                        <h2 className="text-lg font-black text-white leading-tight font-display mt-0.5">
+                                            {broadcastStatus === 'off_air' ? "Estación Fuera del Aire" : stream.name}
+                                        </h2>
+                                        <p className="text-xs text-zinc-400 mt-1 truncate">
+                                            {broadcastStatus === 'off_air'
+                                                ? "Intenta nuevamente en unos minutos"
+                                                : streamUrl === PRESET_STREAMS[0].url ? "Variedad Musical de Lara" : "Frecuencia Satelital Alternativa"
+                                            }
+                                        </p>
+                                    </div>
+
+                                    {/* Playback Controls */}
+                                    <div className="flex items-center gap-4">
+                                        {/* Circular Big Play Button */}
+                                        <button 
+                                            onClick={handlePlayPause}
+                                            className={`w-14 h-14 rounded-full flex items-center justify-center text-white transition-all transform hover:scale-105 shadow-lg touch-manipulation ${isPlaying ? 'bg-zinc-800 hover:bg-zinc-700 shadow-zinc-950/40' : 'bg-rose-600 hover:bg-rose-700 shadow-rose-600/30'}`}
+                                        >
+                                            <i className={`fas ${isPlaying ? 'fa-pause text-lg' : 'fa-play text-xl ml-1'}`}></i>
+                                        </button>
+
+                                        {/* Slider Volume control */}
+                                        <div className="flex-1 bg-zinc-950 rounded-xl px-4 py-2 border border-zinc-800/80 flex items-center gap-3">
+                                            <i className={`fas ${volume === 0 ? 'fa-volume-mute text-zinc-500' : volume < 0.5 ? 'fa-volume-down text-rose-500' : 'fa-volume-up text-rose-500'}`}></i>
+                                            <input 
+                                                type="range" 
+                                                min="0" 
+                                                max="1" 
+                                                step="0.05" 
+                                                value={volume}
+                                                onChange={handleVolumeChange}
+                                                className="w-full accent-rose-600 h-1 bg-zinc-800 rounded-lg cursor-pointer"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Local Sponsors Segment */}
+                        <div className="w-full bg-[#0d0d0f] border-t border-zinc-900/60 py-4 overflow-hidden select-none">
+                            <div className="max-w-7xl mx-auto px-4 md:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
+                                <span className="text-zinc-500 text-xs font-semibold tracking-wider flex items-center gap-2">
+                                    <i className="fas fa-certificate text-rose-600"></i> TRANSMITIENDO CON ALTA DEFINICIÓN DIGITAL
+                                </span>
+                                <div className="flex items-center gap-6">
+                                    <span className="text-zinc-600 text-xs font-bold uppercase">Patrocinadores Locales:</span>
+                                    <div className="flex items-center gap-3 opacity-30 grayscale hover:opacity-70 transition">
+                                        <i className="fab fa-avianex text-lg"></i>
+                                        <span className="text-xs font-extrabold tracking-widest font-display">LARA CORP</span>
+                                    </div>
+                                    <div className="flex items-center gap-3 opacity-30 grayscale hover:opacity-70 transition">
+                                        <i className="fas fa-tractor text-lg"></i>
+                                        <span className="text-xs font-extrabold tracking-widest font-display">AGRO EL BLANCO</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* Advertising Slider Section - Infinito */}
+                    {adBanners.length > 0 && (
+                        <section className="max-w-7xl mx-auto px-4 md:px-8 py-8">
+                            <div className="relative overflow-hidden rounded-2xl bg-zinc-900/40 border border-zinc-800/60 group/slider"
+                                 onMouseEnter={() => setSliderHovered(true)}
+                                 onMouseLeave={() => setSliderHovered(false)}>
+                                {/* Slides track */}
+                                <div className="relative h-32 md:h-40 lg:h-48 overflow-hidden">
+                                    <div
+                                        className="flex h-full ease-in-out"
+                                        style={{
+                                            transform: `translateX(-${currentAdExt * 100}%)`,
+                                            transition: transitionEnabled ? 'transform 500ms' : 'none'
+                                        }}
+                                    >
+                                        {extended.map((banner, idx) => (
+                                            <a
+                                                key={'slide-' + idx}
+                                                href={banner.link || '#'}
+                                                target={banner.link ? '_blank' : undefined}
+                                                rel={banner.link ? 'noopener noreferrer' : undefined}
+                                                className="min-w-full h-full block"
+                                                aria-hidden={idx !== currentAdExt}
+                                            >
+                                                <img
+                                                    src={banner.image}
+                                                    alt={banner.alt || 'Publicidad'}
+                                                    className="w-full h-full object-cover"
+                                                    onError={(e) => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }}
+                                                />
+                                                <div className="hidden w-full h-full bg-gradient-to-r from-zinc-900 to-zinc-800 items-center justify-center">
+                                                    <div className="text-center">
+                                                        <i className="fas fa-rectangle-ad text-2xl text-zinc-600 mb-1"></i>
+                                                        <p className="text-xs text-zinc-500 font-bold">{banner.alt || 'Espacio Publicitario'}</p>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Navigation Arrows */}
+                                {adBanners.length > 1 && (
+                                    <>
+                                        <button onClick={prevAd} className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center transition-all opacity-0 group-hover/slider:opacity-100">
+                                            <i className="fas fa-chevron-left text-xs"></i>
+                                        </button>
+                                        <button onClick={nextAd} className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center transition-all opacity-0 group-hover/slider:opacity-100">
+                                            <i className="fas fa-chevron-right text-xs"></i>
+                                        </button>
+                                    </>
+                                )}
+
+                                {/* Dots Indicators (solo slides reales) */}
+                                {adBanners.length > 1 && (
+                                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 flex gap-1.5">
+                                        {adBanners.map((_, idx) => (
+                                            <button
+                                                key={'dot-' + idx}
+                                                onClick={() => goToAd(idx)}
+                                                className={`w-2 h-2 rounded-full transition-all ${realIndex(currentAdExt) === idx ? 'bg-rose-500 w-4' : 'bg-zinc-600 hover:bg-zinc-400'}`}
+                                            ></button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </section>
+                    )}
+
+                    {/* Biography & Local Identity Section */}
+                    <section id="biografia" className="py-16 md:py-24 max-w-7xl mx-auto px-4 md:px-8 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center bg-section bg-about-section">
+                        {/* Right side Image block (Utiliza Mesa de trabajo 1-100.jpg) */}
+                        <div className="lg:col-span-5 order-2 lg:order-1 relative">
+                            {/* Decorative elements background */}
+                            <div className="absolute -top-6 -left-6 w-32 h-32 bg-rose-600/10 rounded-3xl blur-xl"></div>
+                            <div className="absolute -bottom-6 -right-6 w-44 h-44 bg-zinc-800/40 rounded-full blur-2xl"></div>
+
+                            {/* Main Radio Banner from Mesa de trabajo 1-100.jpg */}
+                            <div className="relative bg-zinc-900 p-3 rounded-3xl border border-zinc-800 shadow-xl overflow-hidden group">
+                                <img 
+                                    src="images/logo_oscar-stereo.png" 
+                                    alt="Oscar Estéreo 88.1 FM Banner" 
+                                    className="w-full h-auto rounded-2xl object-cover grayscale opacity-90 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700"
+                                    onError={(e) => { e.target.src='https://placehold.co/600x200/222222/e11d48?text=Oscar+Est%C3%A9reo+Banner' }}
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent opacity-60"></div>
+                            </div>
+
+                            {/* State seal / Badge overlay */}
+                            <div className="absolute bottom-6 left-6 bg-zinc-900/95 border border-zinc-800 p-4 rounded-2xl shadow-xl flex items-center gap-3 max-w-xs backdrop-blur">
+                                <div className="w-10 h-10 rounded-xl bg-rose-600/10 border border-rose-500/20 flex items-center justify-center text-rose-500 text-lg">
+                                    <i className="fas fa-mountain"></i>
+                                </div>
+                                <div>
+                                    <h4 className="text-xs font-extrabold text-white uppercase tracking-wider">Parroquia El Blanco</h4>
+                                    <p className="text-[11px] text-zinc-400">Municipio Torres, Estado Lara</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Left side Biography Content */}
+                        <div className="lg:col-span-7 order-1 lg:order-2 space-y-6">
+                            <div className="inline-flex items-center gap-2 bg-zinc-900 text-rose-500 border border-zinc-800 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest w-fit">
+                                <i className="fas fa-history text-xs"></i> Raíces e Historia
+                            </div>
+                            <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-tight">
+                                {sections.biografiaTitle}
+                            </h2>
+                            <p className="text-zinc-400 text-sm md:text-base leading-relaxed">{sections.biografiaSubtitle}</p>
+                            <div className="space-y-4 text-zinc-400 text-sm md:text-base leading-relaxed">
+                                <p>
+                                    <strong>Oscar Estéreo 88.1 FM</strong> es una emisora de radio online fundada el <strong>{about.foundingWeb}</strong> en periodo de prueba, y luego el <strong>{about.foundingFm}</strong> hace su primera transmisión en vivo con el programa <strong>"{about.firstShow}"</strong>.
+                                </p>
+                                <p>
+                                    {about.historyFull}
+                                </p>
+                                <p className="border-l-4 border-rose-600 pl-4 py-1.5 text-zinc-300 font-medium italic">
+                                    "Slogan: {about.slogan}"
+                                </p>
+                            </div>
+
+                            {/* Stat block */}
+                            <div className="grid grid-cols-3 gap-4 pt-4 border-t border-zinc-900">
+                                <div>
+                                    <div className="text-2xl md:text-3xl font-black text-white font-display">88.1</div>
+                                    <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Dial FM local</div>
+                                </div>
+                                <div>
+                                    <div className="text-2xl md:text-3xl font-black text-white font-display">100%</div>
+                                    <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Comunitario</div>
+                                </div>
+                                <div>
+                                    <div className="text-2xl md:text-3xl font-black text-rose-600 font-display">24/7</div>
+                                    <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Transmisión</div>
+                                </div>
+                            </div>
+
+                            {/* TV Button */}
+                            <div className="pt-4">
+                                <a href="https://micanal.ovh/channel/live-stream/oscarestereotv" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-500 border border-emerald-500/20 px-4 py-2.5 rounded-xl text-sm font-semibold transition">
+                                    <i className="fas fa-tv"></i> Entra al enlace y conéctate con "Oscar Estéreo Televisión"
+                                </a>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Programming Section */}
+                    <section id="programacion" className="bg-zinc-950 border-y border-zinc-900 py-16 md:py-24 bg-section bg-programming-section">
+                        <div className="max-w-7xl mx-auto px-4 md:px-8">
+                            <div className="text-center max-w-2xl mx-auto mb-12 md:mb-16 space-y-4">
+                                <span className="bg-zinc-900 text-rose-500 border border-zinc-800 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest inline-block">
+                                    <i className="far fa-clock"></i> Parrilla de Programación
+                                </span>
+                                <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight">
+                                    {sections.programacionTitle}
+                                </h2>
+                                <p className="text-zinc-400 text-sm md:text-base">
+                                    {sections.programacionSubtitle}
+                                </p>
+                            </div>
+
+                            {/* Card Grid Layout - Render dinámico desde admin */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                {programs.map(p => {
+                                    const colorMap = { rose: 'rose', blue: 'blue', amber: 'amber', emerald: 'emerald' };
+                                    const c = colorMap[p.color] || 'rose';
+                                    return (
+                                        <div key={p.id} className={`bg-zinc-900/40 border border-zinc-800/80 p-6 rounded-2xl hover:border-${c}-500/30 hover:bg-zinc-900/60 transition group flex flex-col justify-between`}>
+                                            <div>
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <span className={`text-xs font-bold text-${c}-500 tracking-wider`}>{p.timeStart} - {p.timeEnd}</span>
+                                                    <span className={`w-8 h-8 rounded-xl bg-zinc-950 flex items-center justify-center text-zinc-400 group-hover:text-${c}-500 transition border border-zinc-800`}>
+                                                        <i className={`fas ${p.icon || 'fa-radio'}`}></i>
+                                                    </span>
+                                                </div>
+                                                <h3 className={`text-lg font-bold text-white group-hover:text-${c}-400 transition font-display`}>{p.title}</h3>
+                                                <p className="text-xs text-zinc-400 mt-2">
+                                                    {p.desc}
+                                                </p>
+                                            </div>
+                                            <div className="text-[10px] text-zinc-500 font-bold uppercase mt-4 pt-4 border-t border-zinc-900/60">
+                                                Locución: <span className="text-zinc-300">{p.hosts}</span>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Live Interaction & Comments Section */}
+                    <section id="comentarios" className="py-16 md:py-24 max-w-7xl mx-auto px-4 md:px-8 grid grid-cols-1 lg:grid-cols-12 gap-12 bg-section bg-comments-section">
+                        
+                        {/* Left Column: Post a comment/greet form */}
+                        <div className="lg:col-span-5 space-y-6">
+                            <div className="inline-flex items-center gap-2 bg-zinc-900 text-rose-500 border border-zinc-800 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest w-fit">
+                                <i className="far fa-paper-plane"></i> {sections.comentariosBadge}
+                            </div>
+                            <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight">
+                                {sections.comentariosTitle}
+                            </h2>
+                            <p className="text-zinc-400 text-sm md:text-base">
+                                {sections.comentariosSubtitle}
+                            </p>
+
+                            {/* Interactive Form */}
+                            <form onSubmit={handleSubmitComment} className="bg-zinc-900/60 border border-zinc-800/80 p-6 rounded-2xl space-y-4 shadow-xl">
+                                <div>
+                                    <label className="text-xs font-bold uppercase tracking-wider text-zinc-400 block mb-1">Nombre / Seudónimo *</label>
+                                    <div className="relative">
+                                        <span className="absolute left-3.5 top-3 text-zinc-500 text-sm"><i className="far fa-user"></i></span>
+                                        <input 
+                                            type="text" 
+                                            value={authorName}
+                                            onChange={(e) => setAuthorName(e.target.value)}
+                                            placeholder="Ej. Sintonía Torres" 
+                                            required
+                                            maxLength="30"
+                                            className="w-full bg-zinc-950 border border-zinc-800/80 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-rose-600 focus:ring-1 focus:ring-rose-600 transition"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="text-xs font-bold uppercase tracking-wider text-zinc-400 block mb-1">Mensaje o Saludo *</label>
+                                    <textarea 
+                                        value={commentText}
+                                        onChange={(e) => setCommentText(e.target.value)}
+                                        placeholder="Escribe tu saludo para la comunidad o un mensaje a la cabina..." 
+                                        rows="3"
+                                        required
+                                        maxLength="200"
+                                        className="w-full bg-zinc-950 border border-zinc-800/80 rounded-xl px-4 py-2.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-rose-600 focus:ring-1 focus:ring-rose-600 transition"
+                                    ></textarea>
+                                </div>
+
+                                <div>
+                                    <label className="text-xs font-bold uppercase tracking-wider text-zinc-400 block mb-1">Pedir una Canción (Opcional)</label>
+                                    <div className="relative">
+                                        <span className="absolute left-3.5 top-3 text-zinc-500 text-sm"><i className="fas fa-music"></i></span>
+                                        <input 
+                                            type="text" 
+                                            value={songRequest}
+                                            onChange={(e) => setSongRequest(e.target.value)}
+                                            placeholder="Artista - Nombre del tema" 
+                                            maxLength="50"
+                                            className="w-full bg-zinc-950 border border-zinc-800/80 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-rose-600 focus:ring-1 focus:ring-rose-600 transition"
+                                        />
+                                    </div>
+                                </div>
+
+                                <button 
+                                    type="submit" 
+                                    disabled={isSubmitting}
+                                    className="w-full bg-rose-600 hover:bg-rose-700 disabled:bg-zinc-800 text-white py-3 rounded-xl text-sm font-bold tracking-wider transition-all transform hover:scale-[1.01] shadow-lg shadow-rose-600/10 flex items-center justify-center gap-2"
+                                >
+                                    {isSubmitting ? (
+                                        <>
+                                            <i className="fas fa-spinner animate-spin"></i>
+                                            <span>Enviando saludo...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <i className="fas fa-paper-plane"></i>
+                                            <span>Enviar Saludo al Aire</span>
+                                        </>
+                                    )}
+                                </button>
+                            </form>
+                        </div>
+
+                        {/* Right Column: Comments board scroll list */}
+                        <div className="lg:col-span-7 flex flex-col h-[520px] bg-zinc-950 border border-zinc-900 rounded-2xl overflow-hidden shadow-2xl">
+                            
+                            {/* Board Header */}
+                            <div className="bg-zinc-900 px-6 py-4 border-b border-zinc-800 flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+                                    <span className="font-bold text-white text-sm">Pizarra Digital en Vivo</span>
+                                </div>
+                                <span className="text-xs text-zinc-400 font-semibold">{comments.length} Mensajes</span>
+                            </div>
+
+                            {/* Message List */}
+                            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                                {comments.length === 0 ? (
+                                    <div className="h-full flex flex-col items-center justify-center text-center p-6 space-y-3">
+                                        <div className="w-12 h-12 rounded-full bg-zinc-900 flex items-center justify-center text-zinc-500 text-xl border border-zinc-850">
+                                            <i className="far fa-comments"></i>
+                                        </div>
+                                        <div>
+                                            <h4 className="text-white font-bold text-sm">No hay mensajes recientes</h4>
+                                            <p className="text-xs text-zinc-500 mt-1">¡Sé el primero en saludar a Oscar Estéreo!</p>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    comments.map((c) => (
+                                        <div key={c.id} className="bg-zinc-900/50 border border-zinc-800/60 p-4 rounded-xl flex items-start gap-3.5 hover:bg-zinc-900 transition">
+                                            
+                                            {/* Avatar element */}
+                                            <div className="w-9 h-9 rounded-full bg-rose-600/10 border border-rose-500/20 flex items-center justify-center text-rose-500 font-bold font-display text-sm flex-shrink-0">
+                                                {c.author.substring(0, 1).toUpperCase()}
+                                            </div>
+
+                                            {/* Text body */}
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center justify-between gap-2 mb-1">
+                                                    <h4 className="text-sm font-extrabold text-white truncate">{c.author}</h4>
+                                                    <span className="text-[10px] text-zinc-500 font-medium whitespace-nowrap">
+                                                        {new Date(c.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                    </span>
+                                                </div>
+                                                <p className="text-xs text-zinc-300 leading-relaxed break-words">{c.text}</p>
+                                                
+                                                {/* Song request highlight pill */}
+                                                {c.request && (
+                                                    <div className="inline-flex items-center gap-1.5 bg-rose-600/10 text-rose-400 border border-rose-500/10 px-2 py-0.5 rounded-md text-[10px] font-bold mt-2">
+                                                        <i className="fas fa-compact-disc animate-spin" style={{ animationDuration: '3s' }}></i>
+                                                            <span className="uppercase tracking-wider">Petición:</span>
+                                                            <span className="text-zinc-200">{c.request}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+
+                        </section>
+
+                        {/* Botón de Contacto Comercial - Ventas */}
+                        <section className="max-w-7xl mx-auto px-4 md:px-8 pb-12">
+                            <div className="bg-gradient-to-br from-zinc-900 via-zinc-900 to-brand-900/20 border border-brand-border rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+                                <div className="flex items-start gap-4 flex-1">
+                                    <div className="w-12 h-12 rounded-xl bg-brand-600/10 border border-brand-500/20 flex items-center justify-center text-brand-500 text-xl shrink-0">
+                                        <i className="fa-solid fa-bullhorn"></i>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg md:text-xl font-extrabold text-white">¿Eres anunciante o representante comercial?</h3>
+                                        <p className="text-sm text-zinc-400 mt-1 leading-relaxed">Solicita una cotización para pautar en Oscar Estéreo 88.1 FM. Te respondemos en menos de 24 horas con un plan personalizado para tu marca.</p>
+                                    </div>
+                                </div>
+                                <button onClick={() => setShowSalesModal(true)} className="bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm px-6 py-3 rounded-xl transition-all shadow-lg shadow-rose-600/20 flex items-center gap-2 shrink-0">
+                                    <i className="fa-solid fa-envelope-open-text"></i> Formulario de Contacto para Ventas
+                                </button>
+                            </div>
+                        </section>
+
+                        {/* Modal: Formulario de Ventas */}
+                        {showSalesModal && (
+                            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                                <div className="bg-brand-card border border-brand-border w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto">
+                                    <div className="px-6 py-4 border-b border-brand-border flex items-center justify-between sticky top-0 bg-brand-card z-10">
+                                        <h4 className="font-bold text-white text-sm flex items-center gap-2">
+                                            <i className="fa-solid fa-bullhorn text-brand-500"></i> Formulario de Contacto — Ventas
+                                        </h4>
+                                        <button onClick={() => setShowSalesModal(false)} className="text-zinc-500 hover:text-white p-1"><i className="fa-solid fa-xmark text-lg"></i></button>
+                                    </div>
+                                    <form onSubmit={handleSubmitSales} className="p-6 space-y-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="space-y-1.5">
+                                                <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider">Nombre completo *</label>
+                                                <input type="text" id="sales-name" required className="block w-full px-4 py-2.5 bg-zinc-900 border border-brand-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm text-white" placeholder="Tu nombre" />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider">Empresa / Marca *</label>
+                                                <input type="text" id="sales-company" required className="block w-full px-4 py-2.5 bg-zinc-900 border border-brand-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm text-white" placeholder="Tu empresa" />
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="space-y-1.5">
+                                                <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider">Correo electrónico *</label>
+                                                <input type="email" id="sales-email" required className="block w-full px-4 py-2.5 bg-zinc-900 border border-brand-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm text-white" placeholder="tu@correo.com" />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider">Teléfono / WhatsApp</label>
+                                                <input type="tel" id="sales-phone" className="block w-full px-4 py-2.5 bg-zinc-900 border border-brand-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm text-white" placeholder="+58 412 1234567" />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider">Tipo de publicidad</label>
+                                            <select id="sales-type" className="block w-full px-4 py-2.5 bg-zinc-900 border border-brand-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm text-white">
+                                                {(() => {
+                                                    const stored = (() => { try { return JSON.parse(localStorage.getItem('oscar_estereo_db') || '{}'); } catch(e) { return {}; } })();
+                                                    const opts = (stored.salesFormOptions && stored.salesFormOptions.adTypes && stored.salesFormOptions.adTypes.length) ? stored.salesFormOptions.adTypes : [
+                                                        { value: 'menciones', label: 'Menciones en cabina' },
+                                                        { value: 'banner-slider', label: 'Banner en slider de publicidad' },
+                                                        { value: 'spot', label: 'Spot radial pregrabado' },
+                                                        { value: 'patrocinio', label: 'Patrocinio de programa' },
+                                                        { value: 'transmision', label: 'Transmisión de evento en vivo' },
+                                                        { value: 'otro', label: 'Otro' }
+                                                    ];
+                                                    return opts.map(o => <option key={o.value} value={o.value}>{o.label}</option>);
+                                                })()}
+                                            </select>
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider">Presupuesto estimado</label>
+                                            <select id="sales-budget" className="block w-full px-4 py-2.5 bg-zinc-900 border border-brand-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm text-white">
+                                                {(() => {
+                                                    const stored = (() => { try { return JSON.parse(localStorage.getItem('oscar_estereo_db') || '{}'); } catch(e) { return {}; } })();
+                                                    const opts = (stored.salesFormOptions && stored.salesFormOptions.budgetRanges && stored.salesFormOptions.budgetRanges.length) ? stored.salesFormOptions.budgetRanges : [
+                                                        { value: 'menos-100', label: 'Menos de $100 USD' },
+                                                        { value: '100-300', label: '$100 - $300 USD' },
+                                                        { value: '300-500', label: '$300 - $500 USD' },
+                                                        { value: '500-1000', label: '$500 - $1000 USD' },
+                                                        { value: 'mas-1000', label: 'Más de $1000 USD' },
+                                                        { value: 'consultar', label: 'Prefiero consultar' }
+                                                    ];
+                                                    return opts.map(o => <option key={o.value} value={o.value}>{o.label}</option>);
+                                                })()}
+                                            </select>
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider">Mensaje *</label>
+                                            <textarea id="sales-message" required rows="4" className="block w-full px-4 py-2.5 bg-zinc-900 border border-brand-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm text-white" placeholder="Cuéntanos sobre tu marca, objetivos de campaña, fechas deseadas, etc."></textarea>
+                                        </div>
+                                        <div className="pt-2 flex flex-col sm:flex-row gap-3 justify-end">
+                                            <button type="button" onClick={() => setShowSalesModal(false)} className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-bold px-5 py-2.5 rounded-xl transition-all">Cancelar</button>
+                                            <button type="submit" id="btn-sales-submit" className="bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs px-6 py-2.5 rounded-xl transition-all flex items-center gap-2">
+                                                <i className="fa-solid fa-paper-plane"></i> Enviar Solicitud
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        )}
+
+                    {/* Modern Minimalist Footer */}
+                    <footer className="bg-zinc-950 border-t border-zinc-900 py-12 mt-auto">
+                        <div className="max-w-7xl mx-auto px-4 md:px-8 grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+                            
+                            {/* Brand info column */}
+                            <div className="md:col-span-5 space-y-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-full overflow-hidden border border-rose-600">
+                                        <img 
+                                            src="images/logo_oscar-stereo.png" 
+                                            alt="Oscar Estéreo 88.1" 
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => { e.target.src='https://placehold.co/40x40/222222/e11d48?text=OE' }}
+                                        />
+                                    </div>
+                                    <span className="font-display font-black text-lg tracking-wider text-white">OSCAR <span className="text-rose-600">ESTÉREO</span></span>
+                                </div>
+                                <p className="text-xs text-zinc-500 max-w-sm">
+                                    {footerData.description}
+                                </p>
+                            </div>
+
+                            {/* Middle Quick Links */}
+                            <div className="md:col-span-3">
+                                <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-3">Estación Digital</h4>
+                                <ul className="space-y-2 text-xs text-zinc-500">
+                                    <li><a href={nav.footer1Target} onClick={(e) => scrollToSection(e, (nav.footer1Target || '#').replace('#',''))} className="hover:text-rose-500 transition cursor-pointer">{nav.footer1Text}</a></li>
+                                    <li><a href={nav.footer2Target} onClick={(e) => scrollToSection(e, (nav.footer2Target || '#').replace('#',''))} className="hover:text-rose-500 transition cursor-pointer">{nav.footer2Text}</a></li>
+                                    <li><a href={nav.footer3Url} target="_blank" rel="noopener noreferrer" className="hover:text-emerald-500 transition flex items-center gap-1.5"><i className="fas fa-tv text-emerald-600"></i> {nav.footer3Text}</a></li>
+                                    <li><button onClick={() => setShowSettings(true)} className="hover:text-rose-500 transition text-left">Cambiar Servidor Stream</button></li>
+                                </ul>
+                            </div>
+
+                            {/* Social Engagement contact column */}
+                            <div className="md:col-span-4 space-y-4">
+                                <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-400">Ponte en contacto directo</h4>
+                                <div className="flex flex-wrap gap-2.5">
+
+                                    {/* Whatsapp Link */}
+                                    <a
+                                        href={social.whatsappUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="bg-[#25D366]/10 hover:bg-[#25D366]/20 border border-[#25D366]/20 text-[#25D366] px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2"
+                                    >
+                                        <i className="fab fa-whatsapp"></i> WhatsApp
+                                    </a>
+
+                                    {/* Instagram Link */}
+                                    <a
+                                        href={social.instagramUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="bg-rose-600/10 hover:bg-rose-600/20 border border-rose-500/20 text-rose-500 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2"
+                                    >
+                                        <i className="fab fa-instagram"></i> Instagram
+                                    </a>
+
+                                    {/* TikTok Link */}
+                                    <a
+                                        href={social.tiktokUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="bg-zinc-700/30 hover:bg-zinc-700/50 border border-zinc-600/30 text-zinc-200 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2"
+                                    >
+                                        <i className="fab fa-tiktok"></i> TikTok
+                                    </a>
+
+                                    {/* Facebook Link */}
+                                    <a
+                                        href={social.facebookUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="bg-blue-600/10 hover:bg-blue-600/20 border border-blue-500/30 text-blue-400 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2"
+                                    >
+                                        <i className="fab fa-facebook"></i> Facebook
+                                    </a>
+
+                                    {/* YouTube Link */}
+                                    <a
+                                        href={social.youtubeUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="bg-red-600/10 hover:bg-red-600/20 border border-red-500/30 text-red-400 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2"
+                                    >
+                                        <i className="fab fa-youtube"></i> YouTube
+                                    </a>
+                                </div>
+                                <div className="text-[10px] text-zinc-600">
+                                    Dial: <span className="text-zinc-400">88.1 MHz FM</span> | Quebrada Arriba, Parroquia El Blanco, Lara - Venezuela.
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Copyright tag */}
+                        <div className="max-w-7xl mx-auto px-4 md:px-8 mt-10 pt-6 border-t border-zinc-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-[10px] text-zinc-600">
+                            <div className="flex items-center gap-3">
+                                <a href="login.html" className="text-zinc-700 hover:text-rose-600 transition-colors" title="Panel de Administración"><i className="fas fa-cog text-[10px]"></i></a>
+                                &copy; {new Date().getFullYear()} Oscar Estéreo 88.1 FM. Todos los derechos reservados.
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <span className="hover:text-zinc-400 transition cursor-pointer">Términos de Servicio</span>
+                                <span className="hover:text-zinc-400 transition cursor-pointer">Políticas de Privacidad</span>
+                            </div>
+                        </div>
+
+                        {/* Aliados Comerciales y Créditos */}
+                        <div className="max-w-7xl mx-auto px-4 md:px-8 mt-8 pt-6 border-t border-zinc-900">
+                            <h4 className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-4 text-center">Aliados y Créditos</h4>
+                            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-[10px] text-zinc-500">
+                                <a href={partners.devUrl} target="_blank" rel="noopener noreferrer" className="hover:text-rose-500 transition flex items-center gap-1.5">
+                                    <i className="fas fa-code text-rose-600"></i> Diseño y desarrollo: {partners.devName}
+                                </a>
+                                <span className="hidden sm:inline text-zinc-700">|</span>
+                                <a href={partners.colabUrl} target="_blank" rel="noopener noreferrer" className="hover:text-rose-500 transition flex items-center gap-1.5">
+                                    <i className="fas fa-music text-rose-600"></i> Colaboración: {partners.colabName}
+                                </a>
+                                <span className="hidden sm:inline text-zinc-700">|</span>
+                                <a href={partners.allyUrl} target="_blank" rel="noopener noreferrer" className="hover:text-rose-500 transition flex items-center gap-1.5">
+                                    <i className="fas fa-microphone text-rose-600"></i> {partners.allyName}
+                                </a>
+                            </div>
+                        </div>
+
+                        {/* Google AdWords - Espacio publicitario reservado */}
+                        <div className="max-w-7xl mx-auto px-4 md:px-8 mt-8 pt-6 border-t border-zinc-900">
+                            <div className="bg-zinc-900/40 border border-zinc-800/60 rounded-2xl p-6 text-center">
+                                <span className="text-[10px] text-zinc-600 uppercase tracking-widest font-semibold block mb-2">Publicidad</span>
+                                <div className="min-h-[90px] flex items-center justify-center">
+                                    {/* Google AdWords - Coloca tu código de anuncio aquí */}
+                                    <p className="text-[10px] text-zinc-600 italic">Espacio reservado para publicidad</p>
+                                </div>
+                            </div>
+                        </div>
+                    </footer>
+
+                </div>
+            );
+        }
+
+        // Render Application
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

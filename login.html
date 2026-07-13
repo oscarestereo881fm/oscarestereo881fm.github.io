@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Oscar Estéreo 88.1 FM</title>
+  <link rel="icon" type="image/png" href="images/favicon.png" id="favicon-tag">
+  <script>try{var f=JSON.parse(localStorage.getItem('oscar_estereo_db'));if(f&&f.favicon)document.getElementById('favicon-tag').href=f.favicon}catch(e){}</script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: { colors: { brand: { 50: '#fff1f2', 100: '#ffe4e6', 500: '#f43f5e', 600: '#e11d48', 700: '#be123c', 900: '#111827', darker: '#09090b', card: '#18181b', border: '#27272a' } } } }
+    }
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; background-color: #09090b; }
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+    .float-anim { animation: float 3s ease-in-out infinite; }
+    @keyframes pulse-ring { 0% { transform: scale(0.8); opacity: 0.6; } 100% { transform: scale(2); opacity: 0; } }
+    .pulse-ring::before { content: ''; position: absolute; inset: 0; border-radius: 50%; border: 2px solid #e11d48; animation: pulse-ring 2s ease-out infinite; }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-brand-darker via-zinc-950 to-brand-darker">
+
+  <div class="w-full max-w-md">
+
+    <!-- Logo + Título -->
+    <div class="text-center mb-8">
+      <div class="relative inline-block mb-4">
+        <div class="absolute inset-0 pulse-ring"></div>
+        <div class="relative w-20 h-20 mx-auto rounded-full bg-zinc-900 border-2 border-brand-600 flex items-center justify-center float-anim">
+          <i class="fa-solid fa-radio text-3xl text-brand-500"></i>
+        </div>
+      </div>
+      <h1 class="text-2xl font-extrabold text-white tracking-tight">OSCAR <span class="text-brand-600">ESTÉREO</span></h1>
+      <p class="text-xs text-zinc-400 font-semibold tracking-widest uppercase mt-1">88.1 FM • Panel Administrativo</p>
+    </div>
+
+    <!-- Card de Login -->
+    <div class="bg-brand-card border border-brand-border rounded-2xl p-8 shadow-2xl">
+
+      <h2 class="text-lg font-bold text-white mb-1">Iniciar Sesión</h2>
+      <p class="text-xs text-zinc-400 mb-6">Ingresa tus credenciales para acceder al panel.</p>
+
+      <form id="form-login" onsubmit="handleLogin(event)" class="space-y-4">
+
+        <div class="space-y-1.5">
+          <label class="block text-xs font-bold text-zinc-300 uppercase tracking-wider">Usuario</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-500">
+              <i class="fa-solid fa-user"></i>
+            </span>
+            <input type="text" id="login-username" required autofocus class="block w-full pl-10 pr-4 py-3 bg-zinc-900 border border-brand-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm text-white" placeholder="admin" autocomplete="username">
+          </div>
+        </div>
+
+        <div class="space-y-1.5">
+          <label class="block text-xs font-bold text-zinc-300 uppercase tracking-wider">Contraseña</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-500">
+              <i class="fa-solid fa-lock"></i>
+            </span>
+            <input type="password" id="login-password" required class="block w-full pl-10 pr-4 py-3 bg-zinc-900 border border-brand-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm text-white" placeholder="••••••••" autocomplete="current-password">
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between text-xs">
+          <label class="flex items-center gap-2 text-zinc-400 cursor-pointer">
+            <input type="checkbox" id="login-remember" class="rounded bg-zinc-900 border-brand-border text-brand-600 focus:ring-brand-500">
+            <span>Recordarme</span>
+          </label>
+          <a href="#" onclick="openRecovery(); return false;" class="text-brand-500 hover:text-brand-400 font-semibold">¿Olvidaste tu clave?</a>
+        </div>
+
+        <button type="submit" id="btn-login" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm py-3 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 mt-6">
+          <i class="fa-solid fa-right-to-bracket"></i>
+          <span>Ingresar al Panel</span>
+        </button>
+
+      </form>
+
+      <!-- Credenciales demo -->
+      <div class="mt-6 p-3 bg-zinc-950 rounded-xl border border-brand-border/50">
+        <!--p class="text-[10px] text-zinc-500 font-bold uppercase tracking-wider mb-1"><i class="fa-solid fa-circle-info text-zinc-600"></i> Credenciales Demo</p-->
+        <!--p class="text-[10px] text-zinc-400 font-mono">Usuario: <span class="text-white">admin</span> &nbsp; Contraseña: <span class="text-white">oscar2026</span></p-->
+        <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-wider mb-1" style="text-align: center;">
+          <style>
+            .link-volver{color: #fff;}
+            .link-volver:hover{color:#e11d48; }
+          </style>
+          <a href="index.html" class="link-volver">Volver al sitio</a>
+        </p>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <p class="text-center text-[10px] text-zinc-600 mt-6">
+      &copy; 2026 Oscar Estéreo 88.1 FM — Quebrada Arriba, Lara, Venezuela
+    </p>
+  </div>
+
+  <!-- Modal: Recuperar Contraseña -->
+  <div id="recovery-modal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm hidden">
+    <div class="bg-brand-card border border-brand-border w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl">
+      <div class="px-5 py-3 border-b border-brand-border flex items-center justify-between">
+        <h4 class="font-bold text-white text-sm flex items-center gap-2">
+          <i class="fa-solid fa-key text-brand-500"></i> Recuperar Contraseña
+        </h4>
+        <button type="button" onclick="closeRecovery()" class="text-zinc-500 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div class="p-5">
+        <p class="text-xs text-zinc-400 mb-4">Ingresa tu usuario o correo electrónico. Te enviaremos tus credenciales al correo registrado.</p>
+        <div class="space-y-1.5">
+          <label class="block text-xs font-bold text-zinc-300 uppercase tracking-wider">Usuario o Correo</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-500">
+              <i class="fa-solid fa-user"></i>
+            </span>
+            <input type="text" id="recovery-input" class="block w-full pl-10 pr-4 py-3 bg-zinc-900 border border-brand-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm text-white" placeholder="admin o correo@email.com">
+          </div>
+        </div>
+        <div id="recovery-result" class="hidden mt-4 p-3 bg-zinc-950 rounded-xl border border-brand-border"></div>
+        <div class="mt-4 pt-3 border-t border-brand-border/60 flex justify-between">
+          <button type="button" onclick="closeRecovery()" class="text-xs font-bold text-zinc-400 hover:text-white px-4 py-2 rounded-xl transition-all">Cancelar</button>
+          <button type="button" onclick="sendRecovery()" id="btn-recovery" class="bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl transition-all flex items-center gap-2 shadow-lg">
+            <i class="fa-solid fa-paper-plane"></i> Enviar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed top-6 right-6 z-50 hidden">
+    <div class="p-4 rounded-xl border bg-zinc-900 shadow-2xl flex items-center gap-3 max-w-sm" id="toast-box">
+      <span id="toast-icon"><i class="fa-solid fa-check-circle text-emerald-400"></i></span>
+      <span id="toast-text" class="text-xs text-white font-semibold"></span>
+    </div>
+  </div>
+
+  <script>
+    // Si ya hay sesión, redirigir al panel
+    (function() {
+      try {
+        const stored = localStorage.getItem('oscar_estereo_session');
+        if (stored) {
+          const session = JSON.parse(stored);
+          if (session && session.loggedIn && Date.now() < (session.expires || 0)) {
+            window.location.href = 'admin.html';
+          }
+        }
+      } catch(e) {}
+    })();
+
+    function showToast(type, message) {
+      const toast = document.getElementById('toast');
+      const box = document.getElementById('toast-box');
+      const icon = document.getElementById('toast-icon');
+      const text = document.getElementById('toast-text');
+      let cls = 'border-zinc-700';
+      if (type === 'error') { cls = 'border-rose-500/40'; icon.innerHTML = '<i class="fa-solid fa-exclamation-circle text-rose-500"></i>'; }
+      else if (type === 'success') { cls = 'border-emerald-500/40'; icon.innerHTML = '<i class="fa-solid fa-check-circle text-emerald-400"></i>'; }
+      else { icon.innerHTML = '<i class="fa-solid fa-info-circle text-blue-400"></i>'; }
+      box.className = 'p-4 rounded-xl border bg-zinc-900 shadow-2xl flex items-center gap-3 max-w-sm ' + cls;
+      text.textContent = message;
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 3000);
+    }
+
+    function hashPassword(pwd) {
+      let hash = '';
+      for (let i = 0; i < pwd.length; i++) {
+        hash += String.fromCharCode(pwd.charCodeAt(i) ^ 0x2A);
+      }
+      return btoa(hash);
+    }
+
+    async function sha256(pwd) {
+      if (window.crypto && window.crypto.subtle) {
+        try {
+          const data = new TextEncoder().encode(pwd);
+          const hash = await crypto.subtle.digest('SHA-256', data);
+          return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+        } catch(e) {}
+      }
+      return null;
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const user = document.getElementById('login-username').value.trim();
+      const pass = document.getElementById('login-password').value;
+      const btn = document.getElementById('btn-login');
+      const original = btn.innerHTML;
+      btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Verificando...';
+      btn.disabled = true;
+
+      // Intentar autenticación contra usuarios registrados en db
+      let matchedUser = null;
+      try {
+        const stored = localStorage.getItem('oscar_estereo_db');
+        if (stored) {
+          const db = JSON.parse(stored);
+          if (db.users && Array.isArray(db.users)) {
+            for (const u of db.users) {
+              if (u.username !== user || u.active === false) continue;
+              const xorHash = hashPassword(pass);
+              const shaHash = await sha256(pass);
+              const passwordOk = u.password === xorHash || u.password === pass;
+              const passwordHashOk = shaHash ? u.passwordHash === shaHash : u.passwordHash === pass;
+              if (passwordOk || passwordHashOk) { matchedUser = u; break; }
+            }
+          }
+        }
+      } catch(e) {}
+
+      if (matchedUser) {
+        const remember = document.getElementById('login-remember').checked;
+        const expires = remember ? Date.now() + 30 * 24 * 60 * 60 * 1000 : Date.now() + 8 * 60 * 60 * 1000;
+        const session = { loggedIn: true, user: user, role: matchedUser.role || 'editor', expires: expires, loginTime: Date.now() };
+        try {
+          localStorage.setItem('oscar_estereo_session', JSON.stringify(session));
+        } catch(ex) {}
+        showToast('success', 'Bienvenido al panel, ' + user);
+        setTimeout(() => { window.location.href = 'admin.html'; }, 700);
+      } else if (user === 'admin' && pass === 'oscar2026') {
+        // Fallback: credenciales hardcodeadas
+        const remember = document.getElementById('login-remember').checked;
+        const expires = remember ? Date.now() + 30 * 24 * 60 * 60 * 1000 : Date.now() + 8 * 60 * 60 * 1000;
+        const session = { loggedIn: true, user: user, expires: expires, loginTime: Date.now() };
+        try {
+          localStorage.setItem('oscar_estereo_session', JSON.stringify(session));
+        } catch(ex) {}
+        showToast('success', 'Bienvenido al panel, ' + user);
+        setTimeout(() => { window.location.href = 'admin.html'; }, 700);
+        } else {
+          btn.innerHTML = original;
+          btn.disabled = false;
+          showToast('error', 'Credenciales incorrectas. Usa: admin / oscar2026');
+          const card = document.querySelector('.bg-brand-card');
+          if (card) {
+            card.style.animation = 'none';
+            setTimeout(() => { card.style.animation = 'shake 0.4s'; }, 10);
+          }
+        }
+    }
+
+    // Shake animation
+    const style = document.createElement('style');
+    style.textContent = '@keyframes shake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }';
+    document.head.appendChild(style);
+
+    // === RECUPERACIÓN DE CONTRASEÑA ===
+    function openRecovery() {
+      document.getElementById('recovery-modal').classList.remove('hidden');
+      document.getElementById('recovery-input').value = '';
+      document.getElementById('recovery-result').classList.add('hidden');
+    }
+
+    function closeRecovery() {
+      document.getElementById('recovery-modal').classList.add('hidden');
+    }
+
+    function sendRecovery() {
+      const input = document.getElementById('recovery-input').value.trim();
+      const result = document.getElementById('recovery-result');
+      const btn = document.getElementById('btn-recovery');
+      if (!input) { showToast('error', 'Ingresa tu usuario o correo electrónico'); return; }
+
+      try {
+        const stored = localStorage.getItem('oscar_estereo_db');
+        if (!stored) {
+          result.className = 'mt-4 p-3 bg-zinc-950 rounded-xl border border-rose-500/40';
+          result.innerHTML = '<p class="text-xs text-rose-400"><i class="fa-solid fa-exclamation-circle"></i> No hay datos de usuarios. Inicia sesión primero con admin / oscar2026</p>';
+          result.classList.remove('hidden');
+          return;
+        }
+        const db = JSON.parse(stored);
+        if (!db.users || !Array.isArray(db.users) || db.users.length === 0) {
+          result.className = 'mt-4 p-3 bg-zinc-950 rounded-xl border border-rose-500/40';
+          result.innerHTML = '<p class="text-xs text-rose-400"><i class="fa-solid fa-exclamation-circle"></i> No hay usuarios registrados en el sistema.</p>';
+          result.classList.remove('hidden');
+          return;
+        }
+
+        var found = null;
+        var inputLower = input.toLowerCase();
+        for (var i = 0; i < db.users.length; i++) {
+          var u = db.users[i];
+          if (u.username && u.username.toLowerCase() === inputLower) { found = u; break; }
+          if (u.email && u.email.toLowerCase() === inputLower) { found = u; break; }
+        }
+
+        if (!found) {
+          result.className = 'mt-4 p-3 bg-zinc-950 rounded-xl border border-rose-500/40';
+          result.innerHTML = '<p class="text-xs text-rose-400"><i class="fa-solid fa-exclamation-circle"></i> No se encontró ningún usuario con ese dato.</p>';
+          result.classList.remove('hidden');
+          return;
+        }
+
+        var tempPass = 'tmp' + Math.random().toString(36).slice(2, 8).toUpperCase();
+        found.password = hashPassword(tempPass);
+        if (found.passwordHash) delete found.passwordHash;
+        localStorage.setItem('oscar_estereo_db', JSON.stringify(db));
+
+        var emailSent = false;
+        if (db.emailjs && db.emailjs.publicKey && db.emailjs.serviceId && db.emailjs.templateId && found.email) {
+          var originalHtml = btn.innerHTML;
+          btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Enviando...';
+          btn.disabled = true;
+
+          var script = document.createElement('script');
+          script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
+          script.onload = function() {
+            emailjs.init(db.emailjs.publicKey);
+            emailjs.send(db.emailjs.serviceId, db.emailjs.templateId, {
+              to_name: found.name || found.username,
+              to_email: found.email,
+              user_username: found.username,
+              user_password: tempPass,
+              message: 'Tus credenciales de acceso al panel de Oscar Estéreo:\n\nUsuario: ' + found.username + '\nContraseña temporal: ' + tempPass + '\n\nCambia tu contraseña después de ingresar.'
+            }).then(function() {
+              btn.innerHTML = originalHtml;
+              btn.disabled = false;
+              result.className = 'mt-4 p-3 bg-zinc-950 rounded-xl border border-emerald-500/40';
+              result.innerHTML = '<div class="flex items-start gap-3"><div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0"><i class="fa-solid fa-check text-emerald-400 text-sm"></i></div><div><p class="text-xs font-bold text-emerald-400">Correo enviado</p><p class="text-[10px] text-zinc-400 mt-1">Se enviaron las credenciales a: <span class="text-white font-bold">' + found.email + '</span></p></div></div>';
+              result.classList.remove('hidden');
+              showToast('success', 'Credenciales enviadas a ' + found.email);
+            }).catch(function() {
+              btn.innerHTML = originalHtml;
+              btn.disabled = false;
+              result.className = 'mt-4 p-3 bg-zinc-950 rounded-xl border border-amber-500/40';
+              result.innerHTML = '<p class="text-xs text-amber-400"><i class="fa-solid fa-triangle-exclamation"></i> No se pudo enviar el correo. Tu contraseña temporal es: <span class="font-mono font-bold text-white">' + tempPass + '</span></p>';
+              result.classList.remove('hidden');
+            });
+          };
+          script.onerror = function() {
+            btn.innerHTML = originalHtml;
+            btn.disabled = false;
+            result.className = 'mt-4 p-3 bg-zinc-950 rounded-xl border border-amber-500/40';
+            result.innerHTML = '<p class="text-xs text-amber-400"><i class="fa-solid fa-triangle-exclamation"></i> No se pudo cargar el servicio de correo. Tu contraseña temporal es: <span class="font-mono font-bold text-white">' + tempPass + '</span></p>';
+            result.classList.remove('hidden');
+          };
+          document.head.appendChild(script);
+        } else {
+          result.className = 'mt-4 p-3 bg-zinc-950 rounded-xl border border-amber-500/40';
+          var emailMsg = found.email ? ' (' + found.email + ')' : ' (sin correo registrado)';
+          result.innerHTML = '<p class="text-xs text-amber-400"><i class="fa-solid fa-triangle-exclamation"></i> EmailJS no configurado' + emailMsg + '. Tu contraseña temporal es: <span class="font-mono font-bold text-white">' + tempPass + '</span></p>';
+          result.classList.remove('hidden');
+        }
+      } catch(e) {
+        result.className = 'mt-4 p-3 bg-zinc-950 rounded-xl border border-rose-500/40';
+        result.innerHTML = '<p class="text-xs text-rose-400"><i class="fa-solid fa-exclamation-circle"></i> Error: ' + e.message + '</p>';
+        result.classList.remove('hidden');
+      }
+    }
+
+    // Cargar favicon del admin
+    try {
+      const db = JSON.parse(localStorage.getItem('oscar_estereo_db'));
+      if (db && db.favicon) document.getElementById('favicon-tag').href = db.favicon;
+    } catch(e) {}
+  </script>
+</body>
+</html>
