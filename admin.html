@@ -1215,8 +1215,18 @@
       <!-- SECCIÓN 8: CLOUDINARY (IMÁGENES) -->
       <section id="tab-cloudinary" class="tab-content hidden space-y-6">
         <div class="p-6 rounded-2xl bg-brand-card border border-brand-border">
-          <h3 class="text-base font-bold text-white mb-2">Credenciales de Cloudinary <span class="relative group/tip inline-flex items-center ml-1.5 align-middle"><i class="fa-solid fa-circle-info text-[11px] text-zinc-500 group-hover/tip:text-brand-500 cursor-help transition-colors"></i><span class="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-1.5 bg-zinc-950 border border-brand-border text-[10px] text-zinc-300 rounded-lg shadow-xl opacity-0 group-hover/tip:opacity-100 transition-opacity pointer-events-none z-50 w-56 text-center whitespace-normal">Cuenta de Cloudinary para gestionar y subir todas las imágenes del sitio</span></span></h3>
+          <h3 class="text-base font-bold text-white mb-2 flex items-center gap-2">Credenciales de Cloudinary <span id="cloudinary-status-indicator" class="w-3 h-3 rounded-full bg-zinc-700" title="Desconectado"></span> <span class="relative group/tip inline-flex items-center ml-1.5 align-middle"><i class="fa-solid fa-circle-info text-[11px] text-zinc-500 group-hover/tip:text-brand-500 cursor-help transition-colors"></i><span class="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-1.5 bg-zinc-950 border border-brand-border text-[10px] text-zinc-300 rounded-lg shadow-xl opacity-0 group-hover/tip:opacity-100 transition-opacity pointer-events-none z-50 w-56 text-center whitespace-normal">Cuenta de Cloudinary para gestionar y subir todas las imágenes del sitio</span></span></h3>
           <p class="text-xs text-zinc-400 mb-6">Configura el acceso al servicio de almacenamiento de imágenes Cloudinary (almacén principal de fotos del sitio).</p>
+
+          <div class="mb-4 p-3 bg-zinc-950 rounded-xl border border-brand-border flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <span id="cloudinary-conn-dot" class="w-3 h-3 rounded-full bg-zinc-700"></span>
+              <span id="cloudinary-conn-text" class="text-xs text-zinc-400 font-semibold">Sin probar</span>
+            </div>
+            <button type="button" onclick="testCloudinaryConnection()" class="bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs px-4 py-2 rounded-xl transition-all flex items-center gap-2">
+              <i class="fa-solid fa-plug"></i> Probar Conexión
+            </button>
+          </div>
           
           <form id="form-cloudinary" onsubmit="saveCloudinary(event)" class="space-y-5">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -1880,14 +1890,13 @@
       showToast('success', 'Panel de Administración inicializado correctamente');
     };
 
-    // Cargar desde localStorage o inicializar por defecto (merge profundo)
+    // Cargar desde localStorage, Firestore o inicializar por defecto
     function loadDatabase() {
       const stored = localStorage.getItem('oscar_estereo_db');
       if (stored) {
         try {
           db = JSON.parse(stored);
           db = deepMerge(JSON.parse(JSON.stringify(DEFAULT_DATA)), db);
-          // Asegurar campo featured en saludos viejos
           if (db.saludos) {
             db.saludos.forEach(s => { if (s.featured === undefined) s.featured = false; });
           }
@@ -1895,13 +1904,37 @@
           db = JSON.parse(JSON.stringify(DEFAULT_DATA));
         }
       } else {
-        // Intentar restaurar desde backup antes de crear datos frescos
+        // Intentar restaurar desde backup o Firestore
         try {
           const backup = localStorage.getItem('oscar_estereo_db_backup');
           if (backup) {
             db = JSON.parse(backup);
             db = deepMerge(JSON.parse(JSON.stringify(DEFAULT_DATA)), db);
             saveToStorage();
+          } else if (window._firestore) {
+            // Cargar desde Firestore (modo incógnito / otro navegador)
+            window._firestore.collection('siteData').doc('main').get().then(function(doc) {
+              if (doc.exists && doc.data()) {
+                var fsData = doc.data();
+                for (var key in fsData) {
+                  if (fsData[key] !== undefined && fsData[key] !== null) db[key] = fsData[key];
+                }
+                db = deepMerge(JSON.parse(JSON.stringify(DEFAULT_DATA)), db);
+                if (!db.users || !Array.isArray(db.users) || db.users.length === 0) {
+                  db.users = [{ id: 'u1', username: 'admin', password: hashPassword('oscar2026'), role: 'admin', name: 'Adolfo J. Gelabert', email: 'admin@oscarestereo.com', active: true, createdAt: new Date().toISOString() }];
+                }
+                saveToStorage();
+                renderAll();
+                showToast('info', 'Datos restaurados desde la nube');
+              } else {
+                db = JSON.parse(JSON.stringify(DEFAULT_DATA));
+                saveToStorage();
+              }
+            }).catch(function() {
+              db = JSON.parse(JSON.stringify(DEFAULT_DATA));
+              saveToStorage();
+            });
+            return;
           } else {
             db = JSON.parse(JSON.stringify(DEFAULT_DATA));
             saveToStorage();
@@ -3080,7 +3113,7 @@
         showToast('error', 'La imagen es muy grande (máx 5MB)');
         return;
       }
-      // Si Cloudinary está configurado, subir a la nube
+      // Si Cloudinary está configurado, intentar subir a la nube
       if (db.cloudinary && db.cloudinary.cloudName && db.cloudinary.uploadPreset) {
         showToast('info', 'Subiendo imagen a Cloudinary...');
         const fd = new FormData();
@@ -3092,29 +3125,41 @@
             if (data.secure_url) {
               dz.innerHTML = '<input type="file" accept="image/*" class="hidden ad-slider-file"><img src="' + data.secure_url + '" class="w-full h-full object-cover"><div class="absolute inset-0 bg-black/60 opacity-0 group-hover/dz:opacity-100 transition flex items-center justify-center"><span class="text-[10px] text-white font-bold">Cambiar imagen</span></div>';
               urlInput.value = data.secure_url;
-              const newFileInput = dz.querySelector('.ad-slider-file');
-              newFileInput.addEventListener('change', e => { const f = e.target.files[0]; if (f) handleSliderFile(f, dz, urlInput); });
-              dz.addEventListener('click', () => newFileInput.click());
+              reattachSliderDropzone(dz, urlInput);
               showToast('success', 'Imagen subida a Cloudinary');
             } else {
-              showToast('error', 'Error de Cloudinary: ' + (data.error ? data.error.message : 'desconocido'));
+              showToast('info', 'Cloudinary falló, subiendo localmente...');
+              loadFileAsBase64(file, dz, urlInput);
             }
           })
-          .catch(() => showToast('error', 'Error al subir a Cloudinary. Verifica tus credenciales.'));
+          .catch(function() {
+            showToast('info', 'Cloudinary no disponible, subiendo localmente...');
+            loadFileAsBase64(file, dz, urlInput);
+          });
         return;
       }
-      // Fallback: base64 local si no hay Cloudinary configurado
+      // Sin Cloudinary: base64 local
+      loadFileAsBase64(file, dz, urlInput);
+    }
+
+    function loadFileAsBase64(file, dz, urlInput) {
       const reader = new FileReader();
       reader.onload = function(e) {
         const dataUrl = e.target.result;
         dz.innerHTML = '<input type="file" accept="image/*" class="hidden ad-slider-file"><img src="' + dataUrl + '" class="w-full h-full object-cover"><div class="absolute inset-0 bg-black/60 opacity-0 group-hover/dz:opacity-100 transition flex items-center justify-center"><span class="text-[10px] text-white font-bold">Cambiar imagen</span></div>';
         urlInput.value = dataUrl;
-        const newFileInput = dz.querySelector('.ad-slider-file');
-        newFileInput.addEventListener('change', e => { const f = e.target.files[0]; if (f) handleSliderFile(f, dz, urlInput); });
-        dz.addEventListener('click', () => newFileInput.click());
-        showToast('success', 'Imagen cargada localmente (configura Cloudinary para la nube)');
+        reattachSliderDropzone(dz, urlInput);
+        showToast('success', 'Imagen cargada (recuerda Guardar)');
       };
       reader.readAsDataURL(file);
+    }
+
+    function reattachSliderDropzone(dz, urlInput) {
+      const newFileInput = dz.querySelector('.ad-slider-file');
+      if (newFileInput) {
+        newFileInput.addEventListener('change', function(e) { var f = e.target.files[0]; if (f) handleSliderFile(f, dz, urlInput); });
+      }
+      dz.addEventListener('click', function() { var fi = dz.querySelector('.ad-slider-file'); if (fi) fi.click(); });
     }
 
     function addAdSliderBanner() {
@@ -3133,10 +3178,15 @@
       const items = document.querySelectorAll('#ad-slider-banners > div');
       const newBanners = [];
       items.forEach(div => {
-        const image = div.querySelector('.ad-slider-image').value;
-        const link = div.querySelector('.ad-slider-link').value;
-        const pub = div.querySelector('.ad-slider-pub').value;
-        const ven = div.querySelector('.ad-slider-ven').value;
+        const imageEl = div.querySelector('.ad-slider-image');
+        if (!imageEl) return;
+        const image = imageEl.value;
+        const linkEl = div.querySelector('.ad-slider-link');
+        const pubEl = div.querySelector('.ad-slider-pub');
+        const venEl = div.querySelector('.ad-slider-ven');
+        const link = linkEl ? linkEl.value : '';
+        const pub = pubEl ? pubEl.value : '';
+        const ven = venEl ? venEl.value : '';
         if (image) newBanners.push({ image, link, alt: 'Publicidad', fechaPublicacion: pub, fechaVencimiento: ven });
       });
       db.adSlider.banners = newBanners;
@@ -3154,6 +3204,53 @@
       db.cloudinary.uploadPreset = document.getElementById('cloudinary-preset').value;
       saveToStorage();
       showToast('success', 'Credenciales de Cloudinary guardadas correctamente');
+    }
+
+    function testCloudinaryConnection() {
+      const dot = document.getElementById('cloudinary-conn-dot');
+      const text = document.getElementById('cloudinary-conn-text');
+      const ind = document.getElementById('cloudinary-status-indicator');
+      const cn = db.cloudinary && db.cloudinary.cloudName;
+      const ak = db.cloudinary && db.cloudinary.apiKey;
+      const ps = db.cloudinary && db.cloudinary.uploadPreset;
+      if (!cn || !ak || !ps) {
+        dot.className = 'w-3 h-3 rounded-full bg-rose-500';
+        text.textContent = 'Faltan credenciales';
+        text.className = 'text-xs text-rose-400 font-semibold';
+        if (ind) ind.className = 'w-3 h-3 rounded-full bg-rose-500';
+        showToast('error', 'Configura Cloud Name, API Key y Upload Preset');
+        return;
+      }
+      dot.className = 'w-3 h-3 rounded-full bg-amber-500 animate-pulse';
+      text.textContent = 'Probando conexión...';
+      text.className = 'text-xs text-amber-400 font-semibold';
+      const fd = new FormData();
+      fd.append('upload_preset', ps);
+      fd.append('resource_type', 'image');
+      fetch('https://api.cloudinary.com/v1_1/' + cn + '/image/upload', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(data => {
+          if (data.error && data.error.message && data.error.message.indexOf('whitelist') === -1) {
+            dot.className = 'w-3 h-3 rounded-full bg-rose-500';
+            text.textContent = 'Error: ' + data.error.message;
+            text.className = 'text-xs text-rose-400 font-semibold';
+            if (ind) ind.className = 'w-3 h-3 rounded-full bg-rose-500';
+            showToast('error', 'Cloudinary: ' + data.error.message);
+          } else {
+            dot.className = 'w-3 h-3 rounded-full bg-emerald-500';
+            text.textContent = 'Conectado — ' + cn + '.cloudinary.com';
+            text.className = 'text-xs text-emerald-400 font-semibold';
+            if (ind) ind.className = 'w-3 h-3 rounded-full bg-emerald-500';
+            showToast('success', 'Conexión exitosa con Cloudinary');
+          }
+        })
+        .catch(() => {
+          dot.className = 'w-3 h-3 rounded-full bg-rose-500';
+          text.textContent = 'Error de red';
+          text.className = 'text-xs text-rose-400 font-semibold';
+          if (ind) ind.className = 'w-3 h-3 rounded-full bg-rose-500';
+          showToast('error', 'No se pudo conectar con Cloudinary');
+        });
     }
 
     function togglePassword(id, btn) {
