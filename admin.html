@@ -35,6 +35,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Firebase SDK (compat) para sincronizar datos con la landing -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <style>
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
@@ -1846,6 +1849,12 @@
 
     // === INICIALIZACIÓN DE LA APLICACIÓN ===
     window.onload = function() {
+      // Inicializar Firebase para sincronizar con la landing
+      try {
+        var fbConfig = { apiKey: "AIzaSyDY2_pzReaOdkeqVQzpankuOoQJW-47F8g", authDomain: "oscar-estereo.firebaseapp.com", projectId: "oscar-estereo", storageBucket: "oscar-estereo.firebasestorage.app", messagingSenderId: "227183139521", appId: "1:227183139521:web:4994423ddbc8b7168c9240" };
+        if (!firebase.apps.length) firebase.initializeApp(fbConfig);
+        window._firestore = firebase.firestore();
+      } catch(e) { console.warn('Firebase init error:', e); }
       // Verificar sesión (si no hay, redirigir al login)
       try {
         const stored = localStorage.getItem('oscar_estereo_session');
@@ -1930,10 +1939,22 @@
       return target;
     }
 
-    // Guardar estado actual (con backup automático)
+    // Guardar estado actual (con backup automático + Firestore)
     function saveToStorage() {
       localStorage.setItem('oscar_estereo_db', JSON.stringify(db));
       try { localStorage.setItem('oscar_estereo_db_backup', JSON.stringify(db)); } catch(e) {}
+      // Sincronizar con Firestore para que todos los visitantes vean los datos
+      try {
+        if (window._firestore) {
+          var docRef = window._firestore.collection('siteData').doc('main');
+          var dataToSend = {};
+          var keys = ['hero','navigation','streaming','aboutUs','programs','social','footer','sectionTitles','adSlider','partners','ads','seo'];
+          for (var i = 0; i < keys.length; i++) {
+            if (db[keys[i]] !== undefined) dataToSend[keys[i]] = db[keys[i]];
+          }
+          docRef.set(dataToSend);
+        }
+      } catch(e) { console.warn('Firestore save error:', e); }
     }
 
     // Restaurar base de datos

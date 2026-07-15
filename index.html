@@ -7,6 +7,17 @@
     <link rel="icon" type="image/png" href="images/favicon.png" id="favicon-tag">
     <script>try{var f=JSON.parse(localStorage.getItem('oscar_estereo_db'));if(f&&f.favicon)document.getElementById('favicon-tag').href=f.favicon}catch(e){}</script>
 
+    <!-- Firebase SDK (compat) para leer datos compartidos -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script>
+      try {
+        const fbConfig = { apiKey: "AIzaSyDY2_pzReaOdkeqVQzpankuOoQJW-47F8g", authDomain: "oscar-estereo.firebaseapp.com", projectId: "oscar-estereo", storageBucket: "oscar-estereo.firebasestorage.app", messagingSenderId: "227183139521", appId: "1:227183139521:web:4994423ddbc8b7168c9240" };
+        if (!firebase.apps.length) firebase.initializeApp(fbConfig);
+        window._firestore = firebase.firestore();
+      } catch(e) { console.warn('Firebase init error:', e); }
+    </script>
+
     <!-- Open Graph / Redes Sociales - Preview al compartir -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Oscar Estéreo 88.1 FM — Tu alternativa musical" />
@@ -146,6 +157,16 @@
             seo: { gaId: '', gscCode: '', sitemapUrl: '', metaTitle: '', metaDescription: '', metaKeywords: '' }
         };
 
+        // Firebase Firestore: cargar datos desde la nube
+        async function loadFirestoreData() {
+            try {
+                if (!window._firestore) return null;
+                const doc = await window._firestore.collection('siteData').doc('main').get();
+                if (doc.exists) return doc.data();
+            } catch(e) { console.warn('Firestore read error:', e); }
+            return null;
+        }
+
         function loadFrontData() {
             try {
                 const stored = localStorage.getItem('oscar_estereo_db');
@@ -261,9 +282,32 @@
                     }
                     refreshComments();
                 }, 5000);
+
+                // Firestore: escuchar cambios en tiempo real para todos los visitantes
+                let unsubscribe = null;
+                if (window._firestore) {
+                    try {
+                        unsubscribe = window._firestore.collection('siteData').doc('main')
+                            .onSnapshot(function(doc) {
+                                if (doc.exists && doc.data()) {
+                                    var fsData = doc.data();
+                                    setFrontData(function(prev) {
+                                        var merged = {};
+                                        for (var key in DEFAULT_FRONT_DATA) {
+                                            merged[key] = fsData[key] || prev[key] || DEFAULT_FRONT_DATA[key];
+                                        }
+                                        return merged;
+                                    });
+                                    setDataVersion(function(v) { return v + 1; });
+                                }
+                            });
+                    } catch(e) { console.warn('Firestore listener error:', e); }
+                }
+
                 return () => {
                     window.removeEventListener('storage', onStorage);
                     clearInterval(interval);
+                    if (unsubscribe) unsubscribe();
                 };
             }, [frontData]);
 
