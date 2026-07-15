@@ -294,7 +294,19 @@
                                     setFrontData(function(prev) {
                                         var merged = {};
                                         for (var key in DEFAULT_FRONT_DATA) {
-                                            merged[key] = fsData[key] || prev[key] || DEFAULT_FRONT_DATA[key];
+                                            var fsVal = fsData[key];
+                                            var prevVal = prev[key];
+                                            var defVal = DEFAULT_FRONT_DATA[key];
+                                            // Usar valor de Firestore solo si tiene contenido real
+                                            if (fsVal && typeof fsVal === 'object' && !Array.isArray(fsVal) && Object.keys(fsVal).length > 0) {
+                                                merged[key] = fsVal;
+                                            } else if (fsVal && Array.isArray(fsVal) && fsVal.length > 0) {
+                                                merged[key] = fsVal;
+                                            } else if (typeof fsVal === 'string' && fsVal.length > 0) {
+                                                merged[key] = fsVal;
+                                            } else {
+                                                merged[key] = prevVal || defVal;
+                                            }
                                         }
                                         return merged;
                                     });

@@ -1952,6 +1952,12 @@
           for (var i = 0; i < keys.length; i++) {
             if (db[keys[i]] !== undefined) dataToSend[keys[i]] = db[keys[i]];
           }
+          // Quitar imágenes base64 de los banners (Firestore límite 1MB)
+          if (dataToSend.adSlider && dataToSend.adSlider.banners) {
+            dataToSend.adSlider = { banners: dataToSend.adSlider.banners.map(function(b) {
+              return { image: (b.image && b.image.indexOf('data:') === 0) ? '' : b.image, link: b.link || '', alt: b.alt || '', fechaPublicacion: b.fechaPublicacion || '', fechaVencimiento: b.fechaVencimiento || '' };
+            })};
+          }
           docRef.set(dataToSend);
         }
       } catch(e) { console.warn('Firestore save error:', e); }
@@ -3074,25 +3080,39 @@
         showToast('error', 'La imagen es muy grande (máx 5MB)');
         return;
       }
+      // Si Cloudinary está configurado, subir a la nube
+      if (db.cloudinary && db.cloudinary.cloudName && db.cloudinary.uploadPreset) {
+        showToast('info', 'Subiendo imagen a Cloudinary...');
+        const fd = new FormData();
+        fd.append('file', file);
+        fd.append('upload_preset', db.cloudinary.uploadPreset);
+        fetch('https://api.cloudinary.com/v1_1/' + db.cloudinary.cloudName + '/image/upload', { method: 'POST', body: fd })
+          .then(r => r.json())
+          .then(data => {
+            if (data.secure_url) {
+              dz.innerHTML = '<input type="file" accept="image/*" class="hidden ad-slider-file"><img src="' + data.secure_url + '" class="w-full h-full object-cover"><div class="absolute inset-0 bg-black/60 opacity-0 group-hover/dz:opacity-100 transition flex items-center justify-center"><span class="text-[10px] text-white font-bold">Cambiar imagen</span></div>';
+              urlInput.value = data.secure_url;
+              const newFileInput = dz.querySelector('.ad-slider-file');
+              newFileInput.addEventListener('change', e => { const f = e.target.files[0]; if (f) handleSliderFile(f, dz, urlInput); });
+              dz.addEventListener('click', () => newFileInput.click());
+              showToast('success', 'Imagen subida a Cloudinary');
+            } else {
+              showToast('error', 'Error de Cloudinary: ' + (data.error ? data.error.message : 'desconocido'));
+            }
+          })
+          .catch(() => showToast('error', 'Error al subir a Cloudinary. Verifica tus credenciales.'));
+        return;
+      }
+      // Fallback: base64 local si no hay Cloudinary configurado
       const reader = new FileReader();
       reader.onload = function(e) {
         const dataUrl = e.target.result;
-        // Actualizar preview del dropzone
-        dz.innerHTML = `
-          <input type="file" accept="image/*" class="hidden ad-slider-file">
-          <img src="${dataUrl}" class="w-full h-full object-cover">
-          <div class="absolute inset-0 bg-black/60 opacity-0 group-hover/dz:opacity-100 transition flex items-center justify-center"><span class="text-[10px] text-white font-bold">Cambiar imagen</span></div>
-        `;
-        // Actualizar el input URL
+        dz.innerHTML = '<input type="file" accept="image/*" class="hidden ad-slider-file"><img src="' + dataUrl + '" class="w-full h-full object-cover"><div class="absolute inset-0 bg-black/60 opacity-0 group-hover/dz:opacity-100 transition flex items-center justify-center"><span class="text-[10px] text-white font-bold">Cambiar imagen</span></div>';
         urlInput.value = dataUrl;
-        // Re-attach click listener al nuevo file input
         const newFileInput = dz.querySelector('.ad-slider-file');
-        newFileInput.addEventListener('change', e => {
-          const newFile = e.target.files[0];
-          if (newFile) handleSliderFile(newFile, dz, urlInput);
-        });
+        newFileInput.addEventListener('change', e => { const f = e.target.files[0]; if (f) handleSliderFile(f, dz, urlInput); });
         dz.addEventListener('click', () => newFileInput.click());
-        showToast('success', 'Imagen cargada (recuerda Guardar)');
+        showToast('success', 'Imagen cargada localmente (configura Cloudinary para la nube)');
       };
       reader.readAsDataURL(file);
     }
