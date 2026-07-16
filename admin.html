@@ -1195,6 +1195,22 @@
         <div class="p-6 rounded-2xl bg-brand-card border border-brand-border">
           <h3 class="text-base font-bold text-white mb-2">Slider de Publicidad <span class="relative group/tip inline-flex items-center ml-1.5 align-middle"><i class="fa-solid fa-circle-info text-[11px] text-zinc-500 group-hover/tip:text-brand-500 cursor-help transition-colors"></i><span class="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-1.5 bg-zinc-950 border border-brand-border text-[10px] text-zinc-300 rounded-lg shadow-xl opacity-0 group-hover/tip:opacity-100 transition-opacity pointer-events-none z-50 w-56 text-center whitespace-normal">Gestión de banners del slider con imagen, fechas de publicación/vencimiento y enlace que abre en pestaña nueva</span></span></h3>
           <p class="text-xs text-zinc-400 mb-6">Administra los banners del slider. Cada banner tiene imagen, fecha de publicación, fecha de vencimiento y enlace (siempre en nueva pestaña).</p>
+
+          <!-- Indicador de sincronización Firestore -->
+          <div class="mb-4 p-3 bg-zinc-950 rounded-xl border border-brand-border flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <span id="slider-firestore-dot" class="w-2.5 h-2.5 rounded-full bg-zinc-600"></span>
+              <span id="slider-firestore-text" class="text-xs text-zinc-500 font-semibold">Sin conexión Firestore</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="syncSliderToFirestore()" class="bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs px-4 py-2 rounded-xl transition-all flex items-center gap-2">
+                <i class="fa-solid fa-cloud-arrow-up"></i> Sync a la Nube
+              </button>
+              <button type="button" onclick="testSliderFirestore()" class="bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs px-4 py-2 rounded-xl transition-all flex items-center gap-2">
+                <i class="fa-solid fa-plug"></i> Probar Firebase
+              </button>
+            </div>
+          </div>
           
           <form id="form-ad-slider" onsubmit="saveAdSlider(event)" class="space-y-5">
             <div id="ad-slider-banners" class="space-y-4">
@@ -1886,6 +1902,8 @@
       loadDatabase();
       renderAll();
       updateSidebarUser();
+      // Inicializar estado Firestore
+      if (window._firestore) { updateFirestoreStatus('syncing'); } else { updateFirestoreStatus('offline'); }
       window.addEventListener('beforeunload', function() { try { saveToStorage(); } catch(e) {} });
       showToast('success', 'Panel de Administración inicializado correctamente');
     };
@@ -1926,6 +1944,7 @@
                 saveToStorage();
                 renderAll();
                 showToast('info', 'Datos restaurados desde la nube');
+                updateFirestoreStatus('ok');
               } else {
                 db = JSON.parse(JSON.stringify(DEFAULT_DATA));
                 saveToStorage();
@@ -1991,9 +2010,40 @@
               return { image: (b.image && b.image.indexOf('data:') === 0) ? '' : b.image, link: b.link || '', alt: b.alt || '', fechaPublicacion: b.fechaPublicacion || '', fechaVencimiento: b.fechaVencimiento || '' };
             })};
           }
-          docRef.set(dataToSend);
+          docRef.set(dataToSend, { merge: true }).then(function() {
+            updateFirestoreStatus('ok');
+          }).catch(function(err) {
+            console.error('Firestore write error:', err);
+            updateFirestoreStatus('error');
+          });
+          updateFirestoreStatus('syncing');
+        } else {
+          updateFirestoreStatus('offline');
         }
-      } catch(e) { console.warn('Firestore save error:', e); }
+      } catch(e) { console.warn('Firestore save error:', e); updateFirestoreStatus('error'); }
+    }
+
+    function updateFirestoreStatus(status) {
+      var dot = document.getElementById('slider-firestore-dot');
+      var text = document.getElementById('slider-firestore-text');
+      if (!dot || !text) return;
+      if (status === 'ok') {
+        dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500';
+        text.textContent = 'Sincronizado con la nube';
+        text.className = 'text-xs text-emerald-400 font-semibold';
+      } else if (status === 'syncing') {
+        dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse';
+        text.textContent = 'Sincronizando...';
+        text.className = 'text-xs text-amber-400 font-semibold';
+      } else if (status === 'error') {
+        dot.className = 'w-2.5 h-2.5 rounded-full bg-rose-500';
+        text.textContent = 'Error al sincronizar';
+        text.className = 'text-xs text-rose-400 font-semibold';
+      } else {
+        dot.className = 'w-2.5 h-2.5 rounded-full bg-zinc-600';
+        text.textContent = 'Sin conexión Firestore';
+        text.className = 'text-xs text-zinc-500 font-semibold';
+      }
     }
 
     // Restaurar base de datos
@@ -3160,6 +3210,62 @@
         newFileInput.addEventListener('change', function(e) { var f = e.target.files[0]; if (f) handleSliderFile(f, dz, urlInput); });
       }
       dz.addEventListener('click', function() { var fi = dz.querySelector('.ad-slider-file'); if (fi) fi.click(); });
+    }
+
+    function syncSliderToFirestore() {
+      if (!window._firestore) {
+        showToast('error', 'Firebase no está conectado. Configura las credenciales primero.');
+        return;
+      }
+      if (!db.adSlider || !db.adSlider.banners || db.adSlider.banners.length === 0) {
+        showToast('error', 'No hay banners para sincronizar');
+        return;
+      }
+      showToast('info', 'Sincronizando slider con la nube...');
+      updateFirestoreStatus('syncing');
+      var docRef = window._firestore.collection('siteData').doc('main');
+      docRef.get().then(function(docSnap) {
+        var currentData = {};
+        if (docSnap.exists && docSnap.data()) currentData = docSnap.data();
+        currentData.adSlider = {
+          banners: db.adSlider.banners.map(function(b) {
+            return { image: (b.image && b.image.indexOf('data:') === 0) ? '' : b.image, link: b.link || '', alt: b.alt || '', fechaPublicacion: b.fechaPublicacion || '', fechaVencimiento: b.fechaVencimiento || '' };
+          })
+        };
+        return docRef.set(currentData, { merge: true });
+      }).then(function() {
+        updateFirestoreStatus('ok');
+        showToast('success', 'Slider sincronizado con la nube. Todos los visitantes ahora verán los banners.');
+      }).catch(function(err) {
+        console.error('Sync slider error:', err);
+        updateFirestoreStatus('error');
+        showToast('error', 'Error al sincronizar: ' + err.message);
+      });
+    }
+
+    function testSliderFirestore() {
+      if (!window._firestore) {
+        updateFirestoreStatus('offline');
+        showToast('error', 'Firebase no está conectado');
+        return;
+      }
+      updateFirestoreStatus('syncing');
+      var docRef = window._firestore.collection('siteData').doc('main');
+      docRef.get().then(function(docSnap) {
+        if (docSnap.exists) {
+          var data = docSnap.data();
+          var count = (data.adSlider && data.adSlider.banners) ? data.adSlider.banners.length : 0;
+          updateFirestoreStatus('ok');
+          showToast('success', 'Firestore conectado. Banners en la nube: ' + count);
+        } else {
+          updateFirestoreStatus('ok');
+          showToast('info', 'Firestore conectado. Documento no creado aún (se creará al guardar)');
+        }
+      }).catch(function(err) {
+        console.error('Firestore test error:', err);
+        updateFirestoreStatus('error');
+        showToast('error', 'Error de conexión: ' + err.message);
+      });
     }
 
     function addAdSliderBanner() {

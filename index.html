@@ -299,7 +299,13 @@
                                             var defVal = DEFAULT_FRONT_DATA[key];
                                             // Usar valor de Firestore solo si tiene contenido real
                                             if (fsVal && typeof fsVal === 'object' && !Array.isArray(fsVal) && Object.keys(fsVal).length > 0) {
-                                                merged[key] = fsVal;
+                                                // Para adSlider, filtrar banners sin imagen
+                                                if (key === 'adSlider' && fsVal.banners && Array.isArray(fsVal.banners)) {
+                                                    var validBanners = fsVal.banners.filter(function(b) { return b && b.image && b.image.length > 0; });
+                                                    merged[key] = { banners: validBanners };
+                                                } else {
+                                                    merged[key] = fsVal;
+                                                }
                                             } else if (fsVal && Array.isArray(fsVal) && fsVal.length > 0) {
                                                 merged[key] = fsVal;
                                             } else if (typeof fsVal === 'string' && fsVal.length > 0) {
